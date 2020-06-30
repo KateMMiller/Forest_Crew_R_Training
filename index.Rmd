@@ -1060,7 +1060,7 @@ gett_final
 #### Assignments
 Please complete the assignments below. 
 <ul>
-  <li>View QGIS training videos and read Moduel 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.</li>
+  <li>View QGIS training videos and read Module 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.</li>
   <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
   <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
 </ul>
