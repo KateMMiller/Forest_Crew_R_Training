@@ -1568,9 +1568,7 @@ writeOGR(RICH_stock_shp2, dsn = "./shapefiles", layer = "RICH_stock_M9", driver 
 
 
 ### MIDN Metrics 10-15{.tabset}
-This tab is for net next set of metrics
-
-Go ahead an load the packages and import the data.
+This tab covers the next 5 metrics related to composition and invasive species. Go ahead and load the packages and import the data.
 ```{r, c72b,echo=T, results='hide', message=FALSE}
 library(tidyverse)
 library(forestMIDN)
@@ -1579,8 +1577,9 @@ library(rgdal)
 importCSV("../data")
 
 ```
-<details open><summary class='drop'>1. Regeneration by size class map</summary>
-The next set of metrics
+<details open><summary class='drop'>10. Regeneration by composition map</summary>
+
+
 
 </details>
 ### Answers{.tabset}
