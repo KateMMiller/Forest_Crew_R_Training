@@ -1579,10 +1579,10 @@ library(rgdal)
 importCSV("../data")
 
 ```
-<details open><summary class='drop'>1. Regeneration by size class map</summary>{.tabset}
+<details open><summary class='drop'>1. Regeneration by size class map</summary>
 The next set of metrics
 
-
+</details>
 ### Answers{.tabset}
 <h2>Day 1</h2>
 <details><summary class='ques2'>Question 1: How do you find the value of the 3rd row of domSpp?</summary>
