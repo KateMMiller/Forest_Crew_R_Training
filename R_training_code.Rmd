@@ -1,0 +1,1708 @@
+---
+output: 
+  html_document:
+    css: custom_styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Forest Crew R Training {.tabset .tabset-pills}
+--------------------------------------------------
+### Day 1{.tabset}
+
+#### Intro to R & RStudio{.tabset}
+
+<details open><summary class='drop'>Introduction to R and RStudio</summary>
+RStudio is an integrated development environment (IDE) that is a shell around the R program. Programming in the R language is made way easier by the advent of RStudio. When you open RStudio, you typically see 4 panes:
+
+<img src="./images/RStudio.jpg" alt="RStudio" width="800">
+
+<ul class="disc">
+  <li><b>Source:</b> the pane is the top left, and is where you can load and write scripts. When you're ready to run the scripts you can  
+  either highlight a line or lines and click "Run" or hit Ctrl+Enter. That essentially sends the code to R (which is living in the 
+  console), and you'll typically see some form of output in the console.</li>
+    <ul class="square">
+    <li>RStudio color codes functions, datasets, quoted strings, numbers, comments, etc. differently, so it's easier to read 
+    code. You can customize the layout and appearance of your code by clicking on <b>Tools > Global Options</b>. For example, I prefer a dark 
+    background, and use the Cobalt Editor Theme (under Appearance). Using that theme, comments are blue, numbers are magenta, quoted
+    strings are green, etc.</li>
+    <li>RStudio checks your code and updates the colors as you go. If, for example, you have an unclosed parentheses pair in your code, 
+    you will see Xs to the left of the line number and sometimes a little squiggle under a word. If you missed a closing quote, it will 
+    turn all of your following code the color of text (green in my case) until you close the quote. This makes it easier to spot where you
+    missed the closing quote.</li>
+    </ul>
+  <li><b>Console:</b> the pane in the bottom left is essentially where R lives. When you first open RStudio, the console will tell you the
+  version of R that you're running under the hood. You can type code directly in the console, or you can write scripts and send the code to
+  the console.</li>
+  <li><b>Environment Window:</b> this pane in the top right shows you the objects loaded in your environment that are accessible to you.  
+  You can also click on objects and view them.</li>  
+    <ul class="square">
+    <li>The history tab in this pane shows the code you've run in the current session, and can be a way to recover lines you ran 
+    but maybe overwrote/saved in your script (In other words, I rarely go here, but it's saved me in a big way in the past!)</li>
+    </ul>
+  <li><b>Workspace:</b> the pane in the bottom right shows the files within your working directory.</li>
+    <ul class="square">
+    <li>The Plots tab will show plots that you create.</li>
+    <li>The Packages tab allows you to turn on/off packages, and also view the help files within each package.</li>
+    </ul>
+</ul>
+</details>
+</br>
+<details open><summary class='drop'>Useful keystrokes</summary>
+Once you get in the swing of coding, you'll find that minimizing the number of times you have to use your mouse will speed up your coding. RStudio has done a really good job of creating a ton of keyboard shortcuts to keep your hands on the keyboard instead of having to click through menus. One way to see all of the shortcuts RStudio has built in is to press <b>Alt+Shift+K</b>, and a window should appear with a bunch of shortcuts listed. These are also listed on <a href="https://rstudio.com/wp-content/uploads/2016/01/rstudio-IDE-cheatsheet.pdf">RStudio's IDE Cheat Sheet</a>. The shortcuts I use the most often are listed below:
+<ul><li>UNDO: Ctrl+Z</li>
+<li>REDO: Ctrl+Y</li>
+<li>Run highlighted code: Ctrl Enter</li>
+<li>Restart R Session: Ctrl Shift F10</li>
+<li>Move mouse to Source pane: Ctrl 1</li>
+<li>Move mouse to Console pane: Ctrl 2</li>
+<li>Insert pipe (%>%): Ctrl Shift M</li>
+<li>Insert "<-" : Alt - </li> 
+<li>Zoom in to make text bigger: Ctrl Shift + </li>
+<li>Zoom out: Ctrl - </li>
+<li>Clear console: Ctrl L </li>
+</ul>
+</details>
+</br>
+
+<details open><summary class='drop'>Global Options</summary>
+There are several settings in the Global Options that we'll want to all have consistent. To make sure you have the correct settings, go to:
+
+<h3>Tools > Global Options</h3> 
+
+Under the General tab, you should see that your R Version is [64-bit] and the version is R-4.0.0. If it's not, you need to change it to that. Most settings can be whatever you prefer, including everything in the Appearance. The most important setting is to make sure you are not saving your history. When R saves your history, you start with the same workspace (including data loaded in the global environment), which seems like a good thing. However, the whole point of using R is that your code should return the same results every time you run it. Clearing your history every time you close RStudio forces you to test that your code is still returning the same results. If you happen to be working with huge datasets that take awhile to load and process, saving your history and RData are useful. Otherwise, clear your history by default by making sure <i>Always save history (even when not saving .RData)</i> is not checked. Also make sure the <i>Restore .RData into your workspace at startup</i> is unchecked. If you need to do that, you can run 1 line of code instead (load.Rdata("filename.Rdata")).  
+</details>
+</br>
+<details open><summary class='drop'>Loading dependencies</summary>
+While base R (everything that comes with the installation from CRAN) comes with a lot of useful functions, there are also a lot of great packages (aka libraries) out there that make data wrangling, analysis and plotting easier and more efficient. The packages we will rely on the most this season are: 
+<ul>
+  <li><i>dplyr:</i> data wrangling functions including filtering (subsetting), arranging, and summarizing</li>
+  <li><i>tidyr:</i> reshaping data from long to wide and vice versa</li>
+  <li><i>rgdal:</i> to set coordinate systems and create shapefiles </li>
+  <li><i>forestMIDN:</i> for importing, joining, and summarizing data specific to MIDN</li>
+  <li><i>devtools:</i> required to install packages from github</li>
+</ul>
+Note that <i>dplyr</i> and <i>tidyr</i> are part of the <i>tidyverse</i>, which is a collection of a lot of really useful packages. Instead of only installing <i>dplyr</i> and <i>tidyr</i> individually, I recommend installing and loading the <i>tidyverse</i>, which will load those packages, along with several other useful packages.
+
+<p class='code'>To install packages, run the code chunk below:</p>
+
+</ul>
+```{r, c1, echo=T, eval=FALSE}
+install.packages(c("tidyverse", "rgdal", "devtools"))
+devtools::install_github("katemmiller/forestMIDN")
+
+```
+You only need to run the previous code chunk once. After these packages are installed, you can just load the libraries. A couple of notes about packages.
+<ul>
+  <li> Best practices for writing code are to load all of the packages you will use at the top of the script, so that it's obvious early to another user if they need to install a package.</li> 
+  <li>You only need devtools to install the forestMIDN package on github. Once forestMIDN is installed, you don't need to load devtools again.</li>
+  <li> The tidyverse and rgdal can take awhile to install, but once they're installed they are quick to load.</li>
+  <li> Note the use of :: in the code chunk above. That's another way to use functions in a package without loading the package. I only use this for packages like devtools, which I only use once in a script and I use it early. The :: symbol also comes in handy if you're loading packages that have the same function name. </li>
+  <li> To install a package, the name needs to be in quotes. To load the package via library(), you don't quote the package name. Don't ask me why...</li>
+</ul>
+
+<p class='code'>To load the packages, run the code chunk below:</p>
+```{r, c2, echo=T, results='hide', message=FALSE}
+library(tidyverse)
+library(rgdal)
+library(forestMIDN)
+
+```
+
+If you get an error that says there is no package called "x", it means that package didn't install properly, and you should try installing the package again. 
+
+A couple of tips for troubleshooting the forestMIDN package install. 
+<ol>
+<li>Install Rtools for Windows 64-bit. The download page is <a href="https://cran.r-project.org/bin/windows/Rtools/">here.</a></li> 
+<li>If the error you're getting is mentioning the package backports, try doing the following:</li> 
+  <ol style="list-style-type:upper-alpha">
+  <li>Download the <a href="https://cran.r-project.org/bin/windows/contrib/4.0/backports_1.1.7.zip">Windows Binaries</a> for backports.</li>
+  <li>Install backports from file in RStudio by going to <i>Tools> Install Packages> Install From:</i> Change the Install From option to "Package Archive File" and select backports_1.1.17.zip.</li></ol>
+  <li>Now try installing devtools and forestMIDN (install.packages("devtools"); devtools::install_github('katemmiller/forestMIDN'))</li>
+</li>
+</ol>
+</details>
+#### Project and File Setup{.tabset}
+<h2>Project and File Setup</h2>
+First thing we're going to do is start an R project for this training and set up the same file structure, which we'll continue to use all summer. To set up a project, open R Studio and go to: </br> </br><div style="text-indent:20px"> <h3>File > New Project > New Directory > New Project</h3></div></br> 
+Find the directory you're going to work from (other than avoiding saving to your desktop, anywhere is probably fine), and name the directory the R_training. 
+
+<p class='code'>Now run the code chunk below to set up the same file structure.</p> 
+
+```{r, c3, echo=TRUE}
+# Step 1m 
+subfolders<-c("shapefiles", "QGIS_projects", "figures", "tables", "rscripts")
+
+invisible(lapply(subfolders, function(x){
+  if(!dir.exists(x)){dir.create(paste(getwd(), x, sep = '/'))}
+  }))
+
+if(!dir.exists("../data")){dir.create('../data')} # creating a data folder to store MIDN data tables if it doesn't already exist. 
+```
+
+<ul><li>This approach makes sharing code easier, because the parent directly can vary across machines, as long as the project has the same subdirectory. Note the .. before /data. That tells R to go back one level in the parent directory, so you can store your data in one place and access it more easily in the future.</li>
+<li>Now that the data folder exists, download the MIDN data tables into the data folder. You can download the zip of all of the tables <a href="https://drive.google.com/file/d/1wnaR7kqxdhgXuPwwJvMjhY3bXsie_lxq/view?usp=sharing">here</a>. Once you have them unzipped in your data folder, we'll be able to load and work with them in R.</li>
+<li>Once we start working on the park summaries, you'll want to create a project for each park, using its 4-letter code. Once you create a project for a given park, run the first 2 steps in the code chunk above to set up the file system within.</li>
+<li>The last thing to mention here is the # in the code chunk above. The # comments out anything after it on the same line, so R knows not to try to run it. Commenting your code allows you to document what you're doing, so it's easier for someone else (or you 3 months later) to follow your code. </li></ul>
+
+#### Getting Help{.tabset} 
+<h2>Getting Help</h2>
+There are a number of options to get help with R. If you're trying to figure out how to use a function, you can type ?function_name. For example <i>?plot</i> will show the R documentation for that function in the Help panel. <i>?dplyr::filter</i> works too, if you need to connect the package to the function (eg filter is also a function in stats, which is loaded as part of base R). 
+
+```{r, c4, echo=T, eval=F}
+?plot
+?dplyr::filter
+```
+
+To view all of the functions and links to their individual help files, type in help(package=packagename). For example, the code below will bring up the help files for the dplyr package.
+```{r, c5, echo=T, eval=F}
+help(package=dplyr)
+```
+
+Online resources include <a href="https://stackexchange.com/">Stackexchange</a>, and <a href="https://stackoverflow.com//">Stackoverflow</a>. For tidyverse-related packages/questions, there's really good documentation for each package and function <a href="https://tidyverse.tidyverse.org/"> here</a>. Google searches are usually my first step, and I include "in R" in every search related to R code. 
+
+#### Types of Data{.tabset}
+<details open><summary class='drop'>Getting Started</summary>
+Now we're going to start coding. The best way to work through these lessons will be to take the code in the R_Training_code.html doc and copy it in to an R Script in your R_training.Rprj. Go ahead and go to File > New File > R Script (the white rectangle with a green Plus just below the word File will do the same.), and name the script Day_1.R, and save it to your rscripts subfolder. As you get  more comfortable coding in R, try pushing yourself to type the commands, rather than copying and pasting. You'll learn to code faster by typing, even if you're just mimicking what you see in the training document. 
+
+Before we go too far, let's make sure you have the tidyverse package loaded by running the code chunk below. This is the only dependency we'll have for today's code.
+```{r, c5b, echo=T, eval=F}
+library(tidyverse)
+```
+</details>
+</br>
+<details open><summary class='drop'>Types of Data</summary>
+<p>There are multiple types of data in R, including vectors, lists, arrays, matrices, dataframes and tibbles. We will spend most of our time with dataframes, and won't worry about the other data types. Tibbles are the tidyverse version of a dataframe, but they're essentially the same thing as a dataframe with a few added bells and whistles. 
+
+Dataframes are typically organized with rows being records and columns being variables (also called tidy data). The column variables can be numbers, text, or logical (TRUE/FALSE). Before we go any further, let's create a simple dataframe to look at and perform some basic functions. </p>
+
+<p class="code">Copy the code below into the console and run it.</p>
+```{r, c7, echo=T}
+
+df <- data.frame(plot = c(1, 2, 3, 4, 5, 'plot7'), #column for plot number
+                 numtrees = c(24, 18, 17, 14, 31, 27), 
+                 numLive = c(21, 18, 16, 10, 29, 26),
+                 domSpp = c('red_maple', 'willow_oak', 'loblolly_pine','sweet_gum','tulip_poplar', NA),
+                 invasive_pres = c(TRUE, FALSE, FALSE, FALSE, FALSE, TRUE))
+
+print(df)
+```
+
+Here we're creating a dataframe object named <b>df</b> and using <b> <- </b> to assign the stuff on the right to <b>df</b>. The df dataframe has 5 columns and 6 rows. Similar to Excel, R treats numbers and text differently, and some functions will only work with numbers and some will only work with text. 
+A couple of points about working with text columns in R dataframes:
+<ul>
+<li>Text is called a string in R. If you have any text in a column, R automatically makes it a string. </li>
+<li>There are 2 types of strings in R: character (abbreviated chr) and factor. </li>
+<li>Older versions of R (i.e., R < 4.0) defaulted strings to factors. The newest R version defaults to characters, which saves us a lot of headaches (more on this later). </li>
+<li>When you're dealing with strings, you usually have to put quotes around them. Note that 99% of the time, it doesn't matter whether you use single or double quotes, as long as the thing you're quoting is consistent.</li>
+<li>The pound sign (#) is used to tell R not to run the text following the #. This is also called commenting out text, and is a way to leave comments that won't break your code.</li></ul>
+
+Columns that are entirely numbers (blanks are okay too) are numeric. Integers are numeric whole numbers that will only return integers. That's usually not a problem, but if it ever becomes a problem, the as.numeric() function fixes it. Logical is the last data type, and only consists of TRUE and FALSE. 
+
+Finally NA is a blank or missing value in your data. Note that the last row in domSpp is NA (stands for not available).  
+</details>
+</br>
+<details open><summary class='drop'>Selecting rows and columns in R</summary>
+There are 2 main approaches in base R for selecting/working with rows and columns- the $ and [ , ]. 
+<ul>
+  <li> The \$ is used to specify a dataframe name and one of its fields. For example df$plot is referring to the plot column in the df
+  dataframe.</li>
+  <li> The brackets [ , ] allow you to select columns and rows. The left side of the comma in brackets handles rows, and the right side of the bracket
+  deals with columns, like: df[row numbers, column numbers]. </li>
+</ul> 
+
+<p class='code'>To better understand this, run the code below:</p>
+```{r, c8, echo=T, eval=F}
+df$plot # List the values within the column plot for the df dataframe
+df[ , c('plot')] # Bracket version of the same thing
+df[ , 1] # Bracket version of showing the first column, which is plot
+df[2, 1] # Selecting 2nd row of first column
+
+```
+
+<p class='ques'>Question 1: How do you find the value of the 3rd row of domSpp? Answer is in the Answers tab.</p>
+</details>
+</br>
+<details open><summary class='drop'>Check and fix data structure</summary>
+<p class='code'>To check the structure of your data, run the code chunk below.</p>
+```{r, c9, echo=T}
+str(df) # to view how R is defining each column
+head(df) # to view the first 6 rows of df
+names(df) # to view the column names and their order
+```
+
+Note the different data types of the columns. The plot column is called a chr, and not a number because of the last value. There's also a blank in domSpp. Let's modify the dataset so that plot reads in as numeric, and replace the missing value in domSpp with "white oak". 
+
+<p class='code'>Copy (or type) each section of code below and run in your console.</p>
+```{r, c10, echo=T}
+# The long way (note that I renamed the object here)
+df2 <- data.frame(plot = c(1, 2, 3, 4, 5, 7), 
+                 numtrees = c(24, 18, 17, 14, 31, 27), 
+                 numLive = c(21, 18, 16, 10, 29, 26),
+                 domSpp = c('red_maple', 'willow_oak', 'loblolly_pine','sweet_gum','tulip_poplar', 'white_oak'),
+                 invasive_pres = c(TRUE, FALSE, FALSE, FALSE, FALSE, TRUE)) 
+
+# A shorter way
+df$plot[6] <- 7 #takes the 6th row of the plot column and changes it to 6
+df$domSpp[6] <- "white_oak" #takes the 6th row of domSpp and replaces it with "white_oak"
+
+# Another shorter way
+df[6, c("plot")] <- 7 #takes the 6th row of the plot column and makes it 6
+df[6, c('domSpp')] <- "white_oak" #takes the 6th row of the domSpp column and makes it "white_oak"
+
+# Another shorter way
+df[6, 1] <- 7 #takes the 6th row of the first column and makes it 6
+df[6, 4] <- "white_oak" #takes the 6th row of the 4th column and makes it "white_oak"
+
+# Even shorter-way
+df[6, c(1, 4)]<-c(7, "white_oak") #Takes the 6th row and the first and 4th column, which happen to by plot and domSpp.
+# Then the first column gets 7, and the 4th gets "white oak"
+```
+
+This is merely to show that there are usually 5 different ways to do something in R, and the best way is the one you can get to work. At least that's my philosophy for about 75% of the coding I do. The other 20% is about having code I can pick up a year later and still understand what I did. The last 5% is about coding for performance (e.g. if it's a big dataset).
+
+I should mention that when you use numbers instead of column names, your code is pretty fragile to changes in column order (eg, you drop a column). Row numbers are similarly fragile, if you reorder your data. It's better to use names where possible and to use functions that use logic to find and replace records. For example:
+```{r, c11, echo=T, results='hide'}
+
+df[is.na("domSpp")]<-"white_oak"
+```
+Here R is looking for a value in the domSpp column that is NA (R's way of calling it a blank value). Since there's only 1, this works. If there were more than 1 NA, we'd need better logic to assign the proper value to each blank. We'll go into more detail about this when we're actually working with our forest data later.
+
+And now, here's the tidyverse way to replace the blank in df's domSpp column with "white_oak":
+```{r, c12}
+df$domSpp <- df$domSpp %>% replace_na("white_oak")
+
+```
+We'll talk more about pipes (%>%) later, but for now, just know that it's taking the data on the left of the %>% and doing the thing on the right to it.
+
+Finally, check whether plot is now reading in as numeric or still chr.
+```{r, c13, echo=T}
+str(df) #still a char
+```
+R still thinks plot is a char. The as.numeric function fixes the issue. If you didn't fix the last record, the plot column will still convert to numeric, but the last value will be set to NA, and you'll get a warning message: NAs introduced by coercion.
+```{r, c14, echo=T}
+df$plot <- as.numeric(df$plot)
+str(df)
+```
+
+<p class='ques'>Question 2: How would you make numtrees an integer? </p>
+</details>
+</br>
+
+#### Data Summary I{.tabset}
+
+<h2>Data Summary I</h2>
+Using the df we created, let's perform some basic summary statistics. Base R has a number of summary statistics built into it that are really useful, including mean, min, and max. These will come in handy when we start summarizing the data for our parks. 
+
+```{r, c15, echo=T, results='show'}
+min(df$numtrees)
+max(df$numtrees)
+mean(df$numtrees)
+```
+
+The summary() function in R is another way to summarize your data. It knows the type of variable for each column, and gives you a meaningful summary of each type. 
+```{r, c16, echo=T, results='show'}
+summary(df)
+```
+You can also calculate new fields from existing fields in your data.
+```{r, c17, echo=T, results='show'}
+df$numdead <- df$numtrees - df$numLive # base R version
+df <- df %>% mutate(numdead = numtrees - numLive) # tidyverse version. 
+```
+
+The <b>mutate</b> function is in the dplyr package of the tidyverse. It creates a new column in your dataframe, named numdead, and tells it to equal numtrees - numLive in the same way the base R version does. Mutate just spares you having to write df$ over and over. 
+
+<p class='ques'>Question 3: How would you calculate the percent of trees that are dead? </p>
+
+----
+That's the end of Day 1! Be sure to save your Day 1 R script, and complete the assigned tasks in the Assignments tab.  Also, I provide one or a few ways to get the answer to the questions, but it's likely you'll come up with your own. That's how coding in R works!
+
+Lastly, don't worry if you don't understand everything. The key here was to expose you to the many different ways to work with and view data in R. We don't expect you to understand/remember everything the first time (I was lost on how to use brackets [ , ] for a long time). Learning R requires repetition, and there will be a lot of repetition this week (and this season)!
+
+#### Assignments
+Please complete the assignments below. Note that the readings are to expose you to new topics, but you're not expected to understand or digest 100% of the material. 
+<ul>
+  <li>R4DS: <a href="https://r4ds.had.co.nz/transform.html">Chapter 5. Data transformations</a></li>
+  <li>STAT545: <a href="https://stat545.com/r-basics.html">Chapter 2. R basics and workflows</a></li>
+  <li>STAT545: <a href="https://stat545.com/basic-data-care.html">Chapter 5. Basic care and feeding of data in R</a></li>
+  <li>STAT545: <a href="https://stat545.com/dplyr-intro.html">Chapter 6. Intro to dplyr</a></li>
+  <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
+  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
+</ul>
+
+### Day 2{.tabset}
+#### Data Wrangling Part I{.tabset}
+
+Before we get started, open the R_training.Rproj project in RStudio, start a Day_2.R script, and load the packages we'll use today.
+```{r, c18, echo=T, eval=F}
+library(tidyverse)
+library(forestMIDN)
+```
+
+<details open><summary class='drop'>Read in and View Data</summary>
+Let's read in and explore some of the MIDN forest data tables. First, let's load in our plant lookup table using base R functions to read in data.
+
+Read in the Plant species lookup table (tlu_Plants.csv) from the MIDN database. Remember that the data folder is one level higher in your directory, so you need to use ".." to go backwards and find it.
+```{r, c19, echo=T, results='hide'}
+plants <- read.csv("../data/tlu_Plants.csv")
+```
+
+Note that there's now an object in your global environment named plants. You can view the structure and the data by clicking on it in the global environment panel. You can also look at the data using a number of functions that work better for larger datasets (eg you don't want to print the whole dataset to the console because there's 1000+ records).
+
+```{r, c20, echo=T, results='hide', eval=FALSE}
+head(plants) # shows the first 6 lines of the dataframe, including the names of the columns
+tail(plants[1:15]) # shows last 6 records in the dataframe (truncated for first 15 columns)
+names(plants) # shows the column names of the dataframe
+str(plants[1:15]) # shows the type of data in each column (truncated to the first 15 columns)
+
+plants[1,] # returns the first row and all of the columns of the plants table
+plants[1:4,c(9,10)] # returns the first four rows and the 9th and 10th column of the plants table
+plants[1:4, c("Latin_Name", "Accepted_Latin_Name")] # does the same as the line above
+View(plants) # opens a new tab of the data, where you can sort and filter to explore the data
+
+sort(unique(plants$Latin_Name))[1:10] # makes list of all of the unique species in Latin_Name, sorts alphabetically, and gives first 10.
+
+length(unique(plants$Latin_Name)) # number of unique rows in specified column
+```
+
+Note that the length(unique(data$column)) gives you the number of unique records within a field. In this case there are 1307 unique species in our plant lookup table.
+</details>
+</br>
+<details open><summary class='drop'>Selecting and Filtering Data</summary>
+Now load the location table, which stores all of the plot-related information. Let's do some row and column subsetting. Note that subsetting is a generic term for reducing the size of a dataset based on some defined conditions. Filtering typically means reducing rows. Selecting usually means reducing columns. I tend to use filter and subset interchangeably (sorry if that's confusing).
+```{r, c21, echo=T, results='hide'}
+# Loading the location table, which stores all of the plot-related information
+loc <- read.csv("../data/tbl_Locations.csv")
+
+# Reduce number of columns by selecting
+  # First see what the column names are
+names(loc)
+  # Now type in the columns you want in quotes and separated by a comma
+loc2 <- loc[ , c("Location_ID", "X_Coord", "Y_Coord", "Unit_ID", "Loc_Type", "Plot_Number")] 
+loc2b <- loc[ , c(1:3, 11, 12, 14)] # The same as above, but fragile to column order changing
+
+# Reduce number of rows by filtering
+  # First see what the different types are
+sort(unique(loc2$Loc_Type)) # BN, Deer, TEST, VS. We want VS
+
+loc3 <- loc2[loc2$Loc_Type == "VS", ] # Subset data to only include "VS" location types
+loc3b <- subset(loc2, Loc_Type == "VS") # Another base R approach
+```
+
+Note the use of == to subset. In R, when you're trying to match against something (like species == 'white_oak', or invasive_pres == TRUE), you use double == signs. When assigning something to an object (like mutate(newcolum = x + y)), you use a single = sign. 
+
+If you want to pull out all records that are NOT equal to a value, you use !=. That is, in R, ! means NOT. For example invasive_pres != TRUE means to pull in records where invasive_pres is NOT TRUE.
+
+Now the tidyverse way to do steps to get from loc to loc3 in the previous code chunk using the select and filter command and pipes (%>%). The select function is used for columns and the filter command is used for rows. Notice the lack of quotes for the column names. One of the benefits of the tidyverse packages is that you don't have to quote column names, whereas you do in base R. It saves typing time and was a conscious decision of the tidyverse developers.
+```{r, c22, echo=T, results='hide'}
+loc3_tidy <- loc %>% select(Location_ID, X_Coord, Y_Coord, Unit_ID, Loc_Type, Plot_Number) %>% 
+                     filter(Loc_Type == "VS")
+```
+
+
+Now let's check our work to see if the three approaches to subsetting returned the same results.
+```{r, c23, echo=T, results='hide'}
+nrow(loc3) #417
+nrow(loc3b) #416
+nrow(loc3_tidy) #416
+
+table(complete.cases(loc3$Loc_Type)) # 1 FALSE means there's an NA in there
+table(complete.cases(loc3b$Loc_Type)) # All TRUE
+table(complete.cases(loc3_tidy$Loc_Type)) # All TRUE
+```
+
+Notice that the first subset we did for loc3 has 1 more row than the other 2. That's because there's an NA in the Loc_Type column, and it's not automatically removed in the base R subset with brackets. We often have to tell base R what to do with NAs. A lot of functions have the option na.rm = TRUE to remove NAs as part of the function call. In the case of subsetting with brackets, you want to say take everything that is not NA. To do this run the code below.
+
+```{r, c24, echo=T, results='hide'}
+loc3 <- loc2[loc2$Loc_Type == "VS" & !is.na(loc2$Loc_Type), ]
+table(complete.cases(loc3$Loc_Type)) # Now all TRUE
+nrow(loc3) # Now the same number of rows as the other 2.
+
+```
+This example also shows why it's important to always check that any subsetting or summarizing of your data worked correctly. For the park summaries, we'll want to always check that the data we're summarizing are based on the correct number of plots. The nrow() and length(unique(data\$Plot_Number)) will help you do that. View(data), head(data), table(complete.cases(data\$column_name)) are also helpful.
+</details>
+</br>
+<details open><summary class='drop'>Filtering with multiple values</summary>
+This section shows you how to filter rows based on multiple possible values. For the loc table, say we want to pull out Deer and BN (bonus) plots. The easiest way to do this is with <b>%in% c("value1", "value2")</b>, which basically says, match all records that have one of the values in the list. 
+
+```{r, c25, echo=T, results='hide'}
+table(loc2$Loc_Type) # using this to see the levels again
+# Base R
+loc_deer_BN <- loc2[loc2$Loc_Type %in% c("Deer", "BN"), ]
+
+# Tidyverse
+loc_deer_BN_tidy <- loc2 %>% filter(Loc_Type %in% c('Deer', 'BN'))
+
+nrow(loc_deer_BN) #16
+nrow(loc_deer_BN_tidy) #16
+```
+The nice thing about using %in% is that it only pulls records that match exactly one of the values you give it, and you don't have to worry about it also including NAs. 
+
+<p class="ques">Question 4: How would you select only the plots in VAFO and HOFU from the loc table?</p>
+
+<p class="ques">Question 5: How many plots are in VAFO and HOFU combined (based on loc table)?</p>
+</details>
+</br>
+<details open><summary class='drop'>Sorting Data</summary>
+Next topic is sorting data in R, which you can do alphabetically or numerically. Typically when you read in a dataset in R, the order is exactly the order of that in the original file. There are multiple ways to sort data in R. Let's start by sorting the loc table by Unit_ID and Plot_Number. 
+```{r, c26, echo=T, results='hide'}
+head(loc2) # check original before sorting
+
+# Base R- I always forget the exact code and have to look it up.
+loc2_sort <- loc2[order(loc2$Unit_ID, loc2$Plot_Number), ]
+head(loc2_sort)
+
+# Sort in reverse
+loc2_sort_desc <- loc2[order(desc(loc2$Unit_ID), -loc2$Plot_Number), ]
+head(loc2_sort_desc)
+# desc is for text, - is for numbers
+
+# Tidyverse version
+loc2_sort_tidy <- loc2 %>% arrange(Unit_ID, Plot_Number)
+head(loc2_sort_tidy)
+
+#Tidyverse reverse sort
+loc2_sort_tidy_rev <- loc2 %>% arrange(desc(Unit_ID), desc(Plot_Number))
+head(loc2_sort_tidy_rev)
+```
+</details>
+</br>
+<details open><summary class='drop'>Summarizing Data</summary>
+The next topic is summarizing data using group_by() and summarize() functions from dplyr. The group_by() function allows you to specify the columns you want to summarize for each like row in the column. For example grouping by plot number, and summing the basal area for all trees on each plot. Another example is grouping by park (Unit_ID), and calculating the average tree basal area in a park. 
+
+To demonstrate how this works, let's load in a test dataset.
+```{r, c27, echo=T, results='hide'}
+regdf <- read.csv('../data/Regen_test_data.csv')
+head(regdf)
+```
+The regdf dataframe has seedling and sapling densities for the latest visit in each plot in HOFU, RICH and VAFO parks. The stock column is the stocking index, which is another measure of regeneration abundance. Let's say we want to calculate the mean and standard error of each of the 3 regeneration metrics at the park level (ie Unit_Code). 
+
+```{r, c28, echo=T, results='hide'}
+
+reg_by_park <- regdf %>% group_by(Unit_Code) %>% 
+                         summarize(avg_seed_dens = mean(seed_den_m2),
+                                   avg_sap_dens = mean(sap_den_m2),
+                                   avg_stock = mean(stock),
+                                   se_seed_dens = sd(seed_den_m2)/sqrt(n()),
+                                   se_sap_dens = sd(sap_den_m2)/sqrt(n()),
+                                   se_stock = sd(stock)/sqrt(n()),
+                                   numplots = n()
+                                   )
+```
+```{r, c29, echo=T}
+print(reg_by_park)
+```
+
+In the code chunk above, we started with a seed_den_m2, sap_den_m2, and stock record for each plot (regdf). We then grouped by Unit_Code, which is the 4-letter park code, to come up with a mean, min, max and SE for each regen metric at the park level. Because there were only 3 parks in the dataframe, the resulting summary returned 3 results. Note that n() counts the number of rows within each group. By calculating sd(metric)/sqrt(n), we get the standard error.
+
+<p class='ques'>Question 6: How would you calculate the min and max for seed_den_m2?</p>
+</details>
+</br>
+
+#### Saving data to file 
+
+The last thing today is how to write the data you're working on to a file in your computer.
+<p class='code'>The following code saves reg_by_park to file:</p>
+```{r,c30, echo=T, results='hide'}
+write.csv(reg_by_park, "../data/Regen_test_summary.csv")
+```
+You should now see a new file in your data folder. Note that csv stands for comma separated values, and is a generic version of a spreadsheet that most programs can read. They're lightweight, can open in most spreadsheet-like and text editing software. They don't save any kind of formatting though (eg cell borders, bolded text, merged cells, etc). We'll use the csv format to save all of our data to file, until we want to format it for publication, which we'll use .xlsx for. 
+
+We're not actually going to use that file for anything, so you can delete it now (either manually, or running the following code.)
+```{r, c31, echo=T, results='hide'}
+file.remove("../data/Regen_test_summary.csv")
+```
+
+#### Joining dataframes
+
+<h2>Joining dataframes</h2>
+Because our data are stored in a relational database, where plot-level data that never change (eg X, Y coords) are stored in 1 table (tbl_Location) and data related to each visit (also called events) are stored in other tables, we often have to join the tables together to work with them. To do that, we use a column that is found in each table called a primary key, that allows you to match the correct records in one table to the other. In our database, we typically use GUIDs (globally unique identifiers) as our keys. Let's load some of our forest data tables, and use the primary keys to join them together.
+
+```{r, c32, echo=T, results='hide'}
+loc<-read.csv("../data/tbl_Locations.csv")
+event<-read.csv("../data/tbl_Events.csv")
+```
+```{r, c33, echo=T, eval=F}
+View(loc) #Location_ID
+View(event) #Location_ID links to tbl_Location; Event_ID links other visit-level tables to this table
+```
+```{r, c34, echo=T}
+intersect(names(loc), names(event)) # way to check columns two tables have in common.
+
+```
+The primary key to join the loc and event table is Location_ID, which the intersect function also shows is a column they have in common. Notice that while the loc table has a lot of important information in it, there's no information about when and how often a plot has been sampled. The event table, on the other hand has all of the dates a plot was sampled, but it doesn't have the park or plot columns to determine which parks/plots those dates are associated with. We need to join the data from both tables (I'm using dataframe and table interchangeably here) together, to determine that.
+
+As you read in the training materials yesterday afternoon, there are different flavors of joining tables. The main joins we use are 
+<ul>
+  <li> <b>Left joins:</b> take all of the records in the primary key on the left side dataframe (ie the first dataframe specified in 
+  the function) and tries to find one or more matching records in the right side dataframe (ie the second dataframe speficied). Any records in 
+  the left dataframe that don't have a match in the right dataframe will still be included in the final result, but all of the columns 
+  coming from the right dataframe will be NA (blank). Records on the right dataframe without a match in the left dataframe are 
+  dropped from the result.</li>
+  <li> <b>Full joins:</b> take all of the records from both sides of the join. Records on both sides without matches are included in 
+  the results with blanks in the cells that came from the table missing a match.</li>
+</ul>
+
+Let's try this out on simple datasets first, then we'll build up to our forest data. Another great example with visuals can be found <a href="https://mgimond.github.io/ES218/Week03c.html">here</a>.
+```{r, c34a, echo=T, results ='hide'}
+tree <- data.frame(plot = c("p1","p1","p1","p2","p2","p3","p4","p4"), 
+                  treenum = c(1, 2, 3, 11, 12, 21, 32, 33),
+                  species = c("ACERUB" ,"PINTAE", "PINTAE", "QUEALB", "QUEALB", 
+                              "QUEPHE", "FAGGRA", "QUERUB"))
+tree
+
+tree_data <- data.frame(plot = c("p1", "p1", "p1", "p1", "p1","p1", "p2", "p2", "p5", "p7"),
+                        year = c(2012, 2012, 2012, 2016, 2016, 2016, 2012, 2012, 2016, 2016),
+                        treenum = c(1, 2, 3, 1, 2, 3, 11, 12, 51, 71),
+                        DBH = c(12.5, 14.5, 16.1, 12.8, 14.9, 17.2, 28.1, 35.4, 36.1, 45.2))
+
+tree_full_join <- full_join(tree, tree_data, by = c("plot", "treenum"))
+tree_left_join <- left_join(tree, tree_data, by = c("plot", "treenum"))
+
+```
+```{r, c34b, echo=T}
+nrow(tree_full_join)
+nrow(tree_left_join)
+print(tree_full_join)
+print(tree_left_join)
+```
+Note the left join has fewer records, and doesn't include p5 and p7 in the plot column from tree_data. There's also no tree data for plots p3 and p4 because there wasn't any data in the tree_data that matched. The full join includes plots and tree numbers from both tables, but there are NAs where there wasn't a matching record in one of the tables.
+
+Now we're going to get more advanced and join the loc and event tables from our forest database.
+```{r, c35, echo=T, results='hide'}
+# base R version
+names(loc) # to help me pick the columns to include in the join
+names(event)
+loc_event_full <- merge(loc[ , c("Location_ID", "X_Coord", "Y_Coord", "Unit_ID", "Plot_Number", "Rejected")], 
+                     event[, c("Location_ID", "Event_ID", "Start_Date", "Event_QAQC")], 
+                     by = "Location_ID", 
+                     all.x = TRUE, all.y = TRUE)
+```
+```{r, c36, echo=T, eval=F}
+View(loc_event_full) # Now you can see all the times a plot has been sampled. You'll also see that some plots 
+# don't have sample dates. That's because the loc table includes plots that were rejected and never sampled.
+```
+```{r, c37, echo=T}
+loc_event_left <- merge(loc[ , c("Location_ID", "X_Coord", "Y_Coord", "Unit_ID", "Plot_Number", "Rejected", "Loc_Type")], 
+                     event[, c("Location_ID", "Event_ID", "Start_Date", "Event_QAQC")], 
+                     by = "Location_ID", 
+                     all.x = TRUE, all.y = FALSE)
+
+nrow(loc_event_full) # same number of rows because all events have a location record
+nrow(loc_event_left) # same number of rows because all events have a location record
+
+# tidyverse version
+loc2 <- loc %>% select(Location_ID, X_Coord, Y_Coord, Unit_ID, Plot_Number, Rejected, Loc_Type)
+event2 <- event %>% select(Location_ID, Event_ID, Start_Date, Event_QAQC)
+
+loc_event_full_tidy <- full_join(loc2, event2, by = "Location_ID")
+nrow(loc_event_full_tidy) # same number of rows because all events have a location record
+
+loc_event_left_tidy <- left_join(loc2, event2, by = "Location_ID")
+nrow(loc_event_left_tidy) # same number of rows because all events have a location record
+
+```
+
+Getting more advanced, let's filter the loc table so that we only have active plots (ie no rejected plots), and only include plots that are part of the random sample design (Loc_Type == "VS"). Let's also filter the event table to only include visits that are not QAQC visits (We resample 5% of plots each year to check the crew's accuracy, but we generally don't want to include them in analyses.). Next, join the resulting loc and event tables.
+
+```{r, c38, echo=T, results='hide'}
+loc2 <- loc %>% select(Location_ID, X_Coord, Y_Coord, Unit_ID, Plot_Number, Rejected, Loc_Type) %>% 
+                filter(Rejected == FALSE & Loc_Type == "VS")
+table(loc2$Rejected)
+
+event2 <- event %>% select(Location_ID, Event_ID, Start_Date, Event_QAQC) %>% 
+                    filter(Event_QAQC == FALSE)
+table(event2$Event_QAQC)
+
+locevent_full <- merge(loc2, event2, by = "Location_ID", all.x = TRUE, all.y = TRUE) # I learned merge first, 
+# and tend to use it more often, but full_join works here too.
+locevent_left <- merge(loc2, event2, by = "Location_ID", all.x = TRUE, all.y = FALSE)
+
+nrow(locevent_full) #1200
+nrow(locevent_left) #1150
+```
+```{r, c39, echo=T, eval=F}
+View(locevent_full)
+View(locevent_left)
+```
+Notice that when you view locevent_full, there are events with NAs. That's because there are sampling events for deer and BN plots that are in the event table, but don't have matches in the location table, because we filtered out all non-VS plots in the loc table first. When you do the left join to get locevent_left, you don't have those blanks, because you only matched the events that match the plots you care about in the loc table. 
+
+<p class="ques"> Question 7: How would you take only QA/QC events and join the loc table to QA/QC events only (this is a hard one, I know!)?</p>
+
+----------------
+
+I should mention that this is pretty advanced stuff. I coded for years before attempting this in R. If you don't quite understand the concepts, don't worry. The forestMIDN package does most of the heavy lifting with joining tables for you! I'm just giving you a hint of what's under the hood, so you understand what you're doing when you use the functions. The key is to understand which function in that package you need to use for your summary, and how to ask it to give you the data you want. Tomorrow, we take a tour of the forestMIDN package.
+
+That's it for Day 2! Please save your script and complete the tasks in the assignments tab.
+
+#### Assignments
+Please complete the assignments below. 
+
+<ul>
+  <li>R4DS: <a href="https://r4ds.had.co.nz/tidy-data.html">Chapter 12. Tidy data</a></li>
+  <li>R4DS: <a href="https://r4ds.had.co.nz/relational-data.html">Chapter 13. Relational data</a></li>
+  <li>STAT545: <a href="https://stat545.com/dplyr-single.html">Chapter 7. Single table dplyr functions</a></li>
+  <li>STAT545: <a href="https://stat545.com/join-cheatsheet.html">Chapter 15. Join two tables</a></li>
+  <li>Answer the questions for this day and review today's code</li>
+  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
+</ul>
+
+
+### Day 3{.tabset}
+Open the R_training.Rproj project, start a new Day_3.R script, and load the packages we'll use today.
+```{r, c40, echo=T, eval=F}
+library(tidyverse)
+library(forestMIDN)
+library(rgdal) # for saving to shapefile
+```
+
+#### forestMIDN package
+<details open><summary class='drop'>forestMIDN Intro</summary>
+
+The goals for today are to load and get to know the MIDN forest data, join MIDN tables, and play around with filtering/subsetting, mutating, and summarizing functions in the forestMIDN package. 
+
+<p class='code'>To get started, copy the code chunk below to load the required packages and import the MIDN forest data. </p>
+```{r, c41, echo=T, message=FALSE, results='hide'}
+# Load the required libraries
+library(forestMIDN) 
+library(tidyverse)
+
+importCSV("../data")
+
+```
+After running, you should see a progress bar in the console, and "data import complete" when the import finishes. The MIDN data tables should also be listed in the global environment pane. Note that the loc object is the same one you loaded yesterday, same with plants. The importCSV function just does all of the loading and naming for you. The names of each table are used by functions in the forestMIDN package to join, filter and summarize the data. 
+
+To see all of the different functions in the forestMIDN package, run the code chunk below. You should see the functions listed in the Help tab in the Working Environment pane. 
+```{r, c42, echo=T, eval=FALSE}
+help(package=forestMIDN)
+```
+I named the functions so that functions that start with join will join the tables you need to work with a certain type of data. So, joinLocEvent will join the plot data in the loc (tbl_Location) table with the visit data in the event (tbl_Events) table, which is the same thing you did in the previous section. The joinLocEvent() function also makes it easy to filter data at the same time, rather than having to run that separately. 
+
+Clicking on the function name in the Help pane will take you to the help information for that specific function. Most of the functions in the forestMIDN package have examples for how to use them at the bottom. If you find a function that doesn't, let me know, and we can add one as a group!
+
+<h2>Using forestMIDN functions</h2>
+In the previous section, we joined only the loc and event records that were VS and active plots and non-QAQC events. The code chunk below does the same thing.
+```{r, c43, echo=T, results='hide', eval=T}
+locevent2 <- joinLocEvent(park = "all", from = 2007, to = 2019, QAQC = FALSE, rejected = FALSE, locType = "VS", eventType = 'complete')
+
+nrow(locevent2) #1149- this is 1 less than locevent from before, because eventType = 'complete'
+# removes COLO-380-2018, which couldn't be fully sampled due to flooding from beaver dam.
+```
+
+The defaults in each function also save you time. You can check the defaults by going to ?joinLocEvent. Under the <b>Usage</b> section, it shows you that the default for park is "all", meaning all parks. The default year from is 2007, when monitoring began. The default for to is 2019, the latest year of sampling. Most importantly, the default for all of the functions in forestMIDN is to not include QAQC events (QAQC = FALSE), not include rejected plots (rejected = FALSE), and only include vital signs plots (locType = "VS"). You don't have to specify the defaults in the functions, as R will automatically use them. For example, the previous code chunk returns the same as this code chunk, because of the defaults.
+```{r, c44, echo=T, results='hide'}
+locevent2b <- joinLocEvent()
+```
+This may seem kind of weird that you don't have to put anything in the (), but it's because R is plugging the default arguments into the function. 
+
+Let's play a little more with the joinLocEvent() function. Say we only want to pull in the last 4 years of data (one complete cycle) for BOWA. 
+```{r, c45, echo=T, results='hide'}
+BOWA_locevent <- joinLocEvent(park = "BOWA", from = 2016, to = 2019) 
+# to = 2019 isn't needed, because it's the default, but it doesn't hurt either.
+# locType = "VS" and QAQC = FALSE are also defaults, so you can stop including them
+head(BOWA_locevent)
+```
+
+<p class='ques'> Question 8: How many plots were sampled in APCO in 2018?</p>
+
+Once you start joining data with species included, there are more options in the functions to filter by species (eg native or exotic) or other useful variables (eg dead or live trees). 
+</details>
+</br>
+<h2>forestMIDN Joining Functions</h2>
+<details open><summary class='drop'>Tree Data</summary>
+To work with tree data, you can use joinTreeData(). For example, if you want to know all of the dead trees in VAFO that were found in the most recent survey (ie, last 4 years), run the code chunk below:
+```{r, c46, echo=T, results='hide'}
+VAFO_dead_trees <- joinTreeData(park = "VAFO", from = 2016, to = 2019,
+                                status = "dead")
+```
+```{r, c47, echo=T, eval=F}
+View(VAFO_dead_trees)
+length(unique(VAFO_dead_trees$Plot_Name)) 
+```
+The resulting dataframe isn't super helpful for now, but we'll make it more meaningful when we start summarizing data in the next section. Also note that the plots that don't have any dead trees are still in the dataframe, but they have NAs in all of the measurement columns (eg Latin_Name, DBH, etc.). Most of the forestMIDN functions return records for all of the locType = "VS", rejected = FALSE, and QAQC = FALSE by default, so you don't accidentally summarize data without including 0s (eg To calculate % of plots with invasive species, you need to include all of the plots).
+
+To pull out plots from the last 4 years with trees that are exotic species run the code below.
+```{r, c48, echo=T, results='hide'}
+midn_exotic_trees <- joinTreeData(from = 2016, to = 2019, speciesType = 'exotic')
+length(unique(midn_exotic_trees$Plot_Name)) #374 plots, which is the number of complete 
+# plots sampled between 2016-2019, not the number of plots with an exotic tree.
+
+```
+
+</details>
+</br>
+<details open><summary class='drop'>Microplot Shrub Data</summary>
+The shrub data collected in microplots can be joined and filtered using joinMicroShrubData(). For example, if we wanted native shrub % cover data from 2019 in FRSP, we'd run the following code chunk.
+```{r, c49, echo=T, results='hide'}
+frsp_micro_shrub <- joinMicroShrubData(park = 'FRSP', from = 2016, speciesType = 'native')
+```
+</details>
+</br>
+<details open><summary class='drop'>Stand Data</summary>
+If we want to look at the stand data from, including stand structure, percent cover by strata, etc. (basically everything on the Stand tab in the database), use joinStandData(). The code below returns stand data collected in VAFO for last 4 years
+```{r, c50, echo=T, results='hide'}
+vafo_stand <- joinStandData(park = "VAFO", from = 2016)
+head(vafo_stand)
+```
+</details>
+</br>
+<details open><summary class='drop'>Quadrat Data</summary>
+The quadrat species % cover data are joined and filtered using joinQuadData(). Seedling-sized tree cover is not included in this function. Note the new_2019 field, which tells you if that species was first recorded in 2019 due to a protocol change. To get quadrat species data for all exotic species from all non-QAQC visits in HOFU, run the following code.
+```{r, c51, echo=T, results='hide'}
+hofu_quad_exo <- joinQuadData(park = "HOFU", speciesType = 'exotic')
+```
+```{r, echo=T, eval=F}
+View(hofu_quad_exo)
+```
+</details>
+</br>
+<details open><summary class='drop'>Seedling and Sapling Data</summary>
+While the seedlings and saplings are sampled in different subplots (quadrats vs microplots), it's usually helpful to summarize them together. To look at the seedling and sapling data, use the joinRegenData(). For example, the code below gives you all of the regen data in stems/m2 from APCO in the most recent 4-year survey. Note the avg.cover and avg.freq columns here are
+for seedling-size cover of tree species, which differs from avg.cover and avg.freq in the
+joinQuadData(), which lumps cover of all life stages.
+
+```{r, c52, echo=T, results='hide'}
+apco_regen <- joinRegenData(park = "APCO", from = 2016)
+head(apco_regen)
+```
+
+You can also change the units from stems/m2 (default) to stems/ha.
+```{r,c53, echo=T, results='hide'}
+apco_regen_ha <- joinRegenData(park = "APCO", from = 2016, units='ha')
+head(apco_regen_ha)
+```
+</details>
+</br>
+<details open><summary class='drop'>Coarse Woody Debris Data</summary>
+The joinCWDData puts the CWD data together and calculates CWD volume in m3/ha.
+```{r, c54,echo=T, results='hide'}
+midn_cwd <- joinCWDData(park = 'all', from = 2007, to = 2010)
+# If you get a "Factor 'Latin_Name' contains implicit NA..." warning, ignore it for now.
+```
+</details>
+</br>
+<h2> forestMIDN Summary Functions </h2>
+<details open><summary class='drop'>Make plot-level species list</summary>
+The makeSppList() function will generate a plot-level species list and show all of the metrics that species had a record for. For example, to get a species list for all plots sampled in 2019 in APCO, run the code below. 
+```{r, c55, echo=T, results='hide'}
+apco_spp <- makeSppList(park='APCO', from = 2019, to = 2019)
+```
+
+For exotic-only species, run the code below.
+```{r, c56, echo=T, results='hide'}
+apco_exospp <- makeSppList(park="APCO", from = 2019, to = 2019, speciesType = 'exotic')
+
+```
+</details>
+</br>
+<details open><summary class='drop'>Tree diameter distribution</summary>
+We often want to look at the distribution of tree sizes over time to see how forests are changing over time. The figure below is for ROVA. Summarizing the tree data by size classes is tedious. The sumTreeDBHDist() does the heavy lifting for you. You can summarize by density (number of tree stems), or by basal area. You can also choose live, dead or all tree status, and native, exotic, or all species. The resulting dataframe has a record for each plot (and visit, if you include a year range that covers more than one visit), wit the density or basal area in each 10-cm size class. We'll show you how to make the figure below on Day 4.  
+
+<img src="./images/tree_diam_dist.jpg" alt="Tree_Diam_Dist" width="800">
+
+```{r, c57, echo=T, results='hide'}
+# Generate tree diameter distribution for live tree density in RICH in most recent 4-year cycle.
+RICH_live_dist <- sumTreeDBHDist(park="RICH", status="live", units = "density", from = 2016, to = 2019)
+
+# Generate tree diameter distribution for native tree density in RICH in most recent 4-year cycle.
+RICH_native_dist <- sumTreeDBHDist(park="RICH", speciesType="native", units = "density", from = 2016, to = 2019)
+```
+
+<p class='ques'> Question 9: Which plot in FRSP has the highest density of live trees in the 90-99.9cm size class for any year?</p>
+
+</details>
+</br>
+
+#### Data Wrangling Part II
+<h2>Data Wrangling Part II- Reshaping Data</h2>
+Another important concept in data wrangling is reshaping data. Datasets are usually described as long, or wide. The long form, which most of our MIDN forest data start as, consists of each row being an observation (ie if there are 3 visits to a plot, there are 3 rows in the data), and each column being a variable (eg. plot, cycle, numseeds). In summary tables, we often want to reshape the data to be wide, so that there's only one row per plot, a column for each cycle, and the numseeds as the value in the cell. 
+
+```{r, c58, echo=T}
+regen_long <- data.frame(plot = c("p1","p1","p1","p2","p2","p2","p3","p3","p3","p4","p4"),
+                         cycle = c("c1","c2","c3","c1","c2","c3","c1","c2","c3","c1","c2"),
+                         numsds = c(1,4,5,3,2,6,4,9,10,3,1))
+print(regen_long)
+```
+
+To make this wide, we're essentially going to make a pivot table using functions in tidyr. There are two functions you can use. The spread() function was original to tidyr, is what I know the best, and still performs faster on larger datasets than pivot_wider(), the replacement for spread. I show both options, so you can use whichever function makes the most sense to you. 
+```{r,c59, echo=T}
+regen_wide <- regen_long %>% spread("cycle", "numsds") #retired spread function
+regen_wide
+regen_wide2 <- regen_long %>% pivot_wider(names_from = "cycle", values_from = "numsds") #replacement in tidyr
+regen_wide2
+```
+
+Note the NA in c3 for p4. That's because the long version didn't have a data point for that combination. The tidyr package will assign NA when reshaping for combinations not represented in the original dataset. For plots that haven't been sampled in the 3rd cycle in this scenrio, NA makes sense. However, say p4 had been sampled in c3, and there just weren't any seedlings found. You can tell tidyr to fill blanks with 0. This is a handy feature, but it's not to be abused. <b>You should always think carefully before filling blanks with 0s.</b>
+
+```{r,c60, echo=T}
+regen_wide_fill0 <- regen_long %>% spread("cycle", "numsds", fill=0)
+regen_wide_fill0
+
+regen_wide2_fill0 <- regen_long %>% pivot_wider(names_from = "cycle", values_from = "numsds", values_fill=0)
+regen_wide2_fill0
+
+```
+
+Now, say you want to take the wide version of the dataframe and make it long, so that you have a row for every time a plot has been sampled, a column for cycle, and a column for the numseeds. You can use gather(), the original tidyr function, or pivot_longer(), the new one.
+
+```{r, c61, echo=T}
+regen_long2 <- regen_wide_fill0 %>% gather("cycle", "numseeds", -plot)
+regen_long2
+
+names(regen_wide_fill0)
+regen_long2b <- regen_wide_fill0 %>% pivot_longer(cols=c(c1, c2, c3), names_to = "cycle", values_to = "numseeds")
+
+```
+Both functions above are keeping a plot column, and to take the columns c1, c2, and c3 and put their names into a new cycle column, and their values into a new numseeds column. Because we used the wide dataset where NAs were filled with 0, cycle 3 for plot p4 now has 0 instead of NA. 
+
+This approach comes in handy when you want to generate a consistent species list for each plot and show 0s where it didn't occur. For example, say we want a list of all all species found in GETT in 2019 and we want to calculate the number of plots each of those species occurred in. 
+
+```{r, c62, echo=T, results='hide'}
+gett_exospp <- makeSppList(park = "GETT", from = 2019, to = 2019, QAQC=FALSE)
+# Need to add a column that says the species is present.
+gett_exospp$spp_pres<-1
+
+gett_exo_wide  <- gett_exospp %>% select(Plot_Name, Latin_Name, spp_pres) %>% # helps to take only the columns you're interested in
+                                 arrange(Latin_Name, Plot_Name) %>% #arrange is piped here so columns will be alphabetical
+                                 pivot_wider(names_from = "Latin_Name", 
+                                             values_from = "spp_pres", 
+                                             values_fill = 0) %>% 
+                                 arrange(Plot_Name)
+head(gett_exo_wide) 
+#Now to make the the long version of wide, we species we didn't find on a plot are not included and have a 0.
+
+gett_exo_long <- gett_exo_wide %>% pivot_longer(-Plot_Name, 
+                                                names_to = "Latin_Name", 
+                                                values_to = "Present") %>% 
+                                   arrange(Plot_Name, Latin_Name)
+
+head(gett_exo_long)
+
+```
+
+For the pivot_longer, there are a lot of columns that I want to put into the new Latin_Name column. Instead of having to list every single column, I'm telling R to use all but Plot_Name column. Then I sorted by Plot_Name and Latin_Name using arrange.
+
+<p class='ques'>Question 10: How would you create a wide matrix for FRSP plots in 2019 that has plots for rows, and exotic species as columns?</p>
+
+#### Saving data to Shapefile
+Many of the metrics we're going to summarize will be saved as shapefiles to map in QGIS. The process is relatively straightforward. The keys are to have the X, Y Coordinates included in your final summary (may have to do some table joining to get them back), and to know which Coordinate Reference System to specify (abbreviated CRS). MIDN covers 2 UTM Zones, which can be extra tricky. The datum and projection for each park are listed below. 
+
+<ul>
+<li><b>NAD83 UTM Zone 17N:</b> APCO, BOWA</li>
+<li><b>NAD83 UTM Zone 18N:</b> COLO, FRSP, GETT, GEWA, HOFU, PETE, RICH, SAHI, THST, VAFO</li>
+</ul>
+
+Most of the major coordinate systems have a registered EPSG Code assigned to it, including ours. Using the EPSG code is the fastest way to assign the coordinate system for our shapefile. For APCO and BOWA, the EPSG Code is 26917. For the other parks it's 26918 (notice the last digit is the only difference, and matches the UTM Zone above). 
+
+To start out, let's use gett_exo_wide from the previous section to create our first shapefile. The first thing we need to do is add the X, Y Coordinates back into the dataset. 
+
+```{r, c63, echo=T, results='hide'}
+head(gett_exo_wide) # Created at the end of Data Wrangling Part II.
+
+gett_19 <- joinLocEvent(park = "GETT", from = 2019, to = 2019)
+
+gett_for_shp <- merge(gett_19[ , c("Plot_Name", "X_Coord", "Y_Coord")], gett_exo_wide, by = "Plot_Name", 
+                      all.x = TRUE, all.y = TRUE)
+
+# Note that if we had used the code below to generate gett_exo_wide, the coordinates would already be in there
+gett_exo_wide <- gett_exospp %>% select(Plot_Name, X_Coord, Y_Coord, Latin_Name, spp_pres) %>% 
+                                 arrange(Latin_Name, Plot_Name) %>% 
+                                 pivot_wider(names_from = "Latin_Name", 
+                                             values_from = "spp_pres", 
+                                             values_fill = 0) %>% 
+                                 arrange(Plot_Name)
+```
+
+Now that our dataframe has the GPS Coordinates, we need to tell R that these columns are X Y coordinates, and then tell R what the projection and datum are. The rgdal package has the functions to do this.
+
+```{r, c64, echo=T, results="hide", message=FALSE, eval=F}
+head(gett_exo_wide)
+
+# Step 1: Create spatial object by specifying the coordinates
+coordinates(gett_exo_wide) <- ~X_Coord + Y_Coord
+names(gett_exo_wide[1:5])
+plot(gett_exo_wide) # These points now plot in space
+# Step 2: Define the coordinate system 
+proj4string(gett_exo_wide) <- CRS("+init=epsg:26918")
+# Step 3: Write the spatial object to a shapefile
+writeOGR(gett_exo_wide, dsn = "./shapefiles", layer = "GETT_exo_2019", driver = "ESRI Shapefile")
+```
+A lot of this may be unfamiliar to you, especially since ArcGIS does a lot of this work behind the scenes. 
+<ul><li>First notice that after you assign the coordinates in Step 1, the X_Coord and Y_Coord columns disappear from your dataframe. If you try to run that line of code again, you'll get an error because those columns aren't in the dataframe anymore. No need to fret. You've just created a spatial object, and the coordinates are stored in a different slot than the data. </li>
+<li>In the second step, we're telling R that the datum and projection (in proj4 format) for our spatial dataset is the EPSG Code 26918 (code for NAD83, UTM Zone 18N).</li> 
+<li>Finally, we're using the writeOGR command to output to a shapefile. The dsn is the location you're saving the shapefile too.</li>
+<li>Notice that we're using ./shapefiles, which is a folder within the project we created on day 1. Note that the layer name is what the shapefile will be called. Column names usually end up getting abbreviated (don't worry if you get a warning message). </li>
+<li>Finally, writeOGR by default will not allow you to overwrite an existing file. While it's safe to have that as a default, sometimes you want to overwrite shapefiles. To do that, add overwrite_layer=TRUE to the function.</li></ul>
+
+That's it for Day 3. Oofta- we covered a lot of ground the last 2 days! Please save your work, answer the questions for today, and complete the feedback form.  
+
+#### Assignments
+Please complete the assignments below. 
+<ul>
+  <li>R4DS: <a href="https://r4ds.had.co.nz/data-visualisation.html">Chapter 3. Data visualization</a></li>
+  <li>Mastering Software Development in R: <a href="https://bookdown.org/rdpeng/RProgDA/basic-plotting-with-ggplot2.html">Chapter 4.1. Basic plotting with ggplot2</a></li>
+  <li>Mastering Software Development in R: <a href="https://bookdown.org/rdpeng/RProgDA/basic-plotting-with-ggplot2.html">Chapter 4.2. Customizing ggplot2 plots</a></li>
+  <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
+  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
+</ul>
+### Day 4{.tabset}
+#### plotting with ggplot2{.tabset}
+Open your project, make a new Day 4 script, and load the packages we'll use today.
+We also need to reinstall the latest version of forestMIDN, which fixes bugs we found on Tuesday.
+```{r, c65, echo=T, eval=F}
+library(tidyverse)
+devtools::install_github("katemmiller/forestMIDN") #press enter- don't need to update other packages
+library(forestMIDN)
+```
+
+To get started with ggplot2, we need to make a dataset to plot. Instead of making up a simple dataset, let's use what we've learned to make a real dataset from MIDN forest data. Let's start with a plot of the mean regeneration density by size class for the most recent 4-years at GETT. Let's also only include species that make it into the canopy (e.g., no pawpaw). We specify this by using canopyForm = "canopy".
+```{r, c66, echo=T, results='hide'}
+
+gett_regen <- joinRegenData(park = "GETT", from = 2016, to = 2019, canopyForm = "canopy")
+
+head(gett_regen) # this dataframe includes species, so there are multiple rows per plot. 
+
+# We need to group_by Plot_Name, and sum seedling densities to get plot-level seedling densities.
+gett_regen2 <- gett_regen %>% group_by(Plot_Name) %>% 
+                              summarize(seed15_30 = sum(seed15.30),
+                                        seed30_100 = sum(seed30.100),
+                                        seed100_150 = sum(seed100.150),
+                                        seed150p = sum(seed150p),
+                                        sapling = sum(sap.den)) %>% 
+                              arrange(Plot_Name)
+
+# This is the shortest way to get a dataset that has a mean seedling density for each size class and a se for each size class. 
+# Note we want to make this long, so every plot has each of the size classes
+gett_regen_long <- gett_regen2 %>% pivot_longer(-Plot_Name, names_to = "size_class", values_to = "density")
+
+# Now we calculate the mean and se for each size class at the park level
+gett_stats <- gett_regen_long %>% group_by(size_class) %>% 
+                                  summarize(mean_dens = mean(density),
+                                            se_dens = sd(density)/sqrt(n()))
+# We have our dataset to plot. 
+```
+
+The pros with using ggplot are that you can get a plot with very little work. The cons are that as soon as you want to change something, like removing the grid lines, customizing a legend, changing the font size, etc., it's quite tedious to do. Using the default formatting that comes with ggplot, let's plot the gett_regen2 dataset.
+
+The first step in ggplot is to specify the data set and the x and y (and grouping, if you have any) values with the ggplot() function.
+After you set that up, you have to decide what kind of plot you want to us. The most common ones I use are:
+<ul>
+<li><b>geom_bar</b> is a bar chart </li>
+<li><b>geom_point</b> plots points </li>
+<li><b>geom_line</b> plots lines </li>
+<li><b>geom_boxplot</b> is for boxplots </li>
+<li><b>geom_errorbar</b> is a bar chart </li>
+
+</ul>
+
+As long as the mapping is the same (eg x/y values fit on the plot), you can add multiple geoms, such as points and lines that connect the points, or geom_errorbar to the geom_bar. You can even include different datasets. Just know that the ranges of the x and y axis default to the x and y you set in ggplot(). You can manually change the range of an axis to fix that, but it requires more tinkering. You can also keep adding things to the object with +.
+
+```{r,c67, echo=T}
+gett_base <- ggplot(data = gett_stats, aes(x = size_class, y = mean_dens))
+
+# Make a point plot
+gett_base + geom_point()
+
+# Make a bar chart
+gett_bar <- gett_base + geom_bar(stat = 'identity')
+gett_bar
+
+# Add error bars to the previous bar chart
+gett_bar + geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens))+
+           labs(x = "Regeneration Size Class", y = "Stems per sq.m")
+
+```
+
+Note that the x-axis plots the size classes alphabetically instead of from small to big size classes. To fix this (this is where ggplot starts to get fiddly), we want to make the size_class column an ordered factor, and we set the order the levels. 
+```{r, c68,echo=T}
+gett_stats$size_class_fact <- ordered(gett_stats$size_class, 
+                                      levels = c('seed15_30', 'seed30_100', 'seed100_150', 'seed150p', 'sapling'))
+
+gett_bar2 <- ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
+             geom_bar(stat = 'identity')+ 
+             geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens))+
+             labs(x = "Regeneration Size Class", y = "Stems per sq.m")
+
+gett_bar2
+```
+
+That's more like it, but I still don't like how the figure looks. For example, I don't like the gridlines in the figure. Those settings are buried in theme(), and to change it you need to +theme(change_settings_here)
+
+```{r,c69, echo=T}
+
+gett_bar2 + theme(panel.grid.minor = element_blank(),
+                  panel.grid.major = element_blank())
+```
+
+That's a little better, but I still don't like it. And, I never remember exactly what I need to type to remove the gridlines, take the grey fill off the background, etc. So I made my own theme that does all of that in the forestMIDN package, called theme_FVM.
+
+```{r, c70, echo=T}
+gett_bar2+theme_FVM()
+```
+
+Much better! But, I still prefer the bars be a different color than grey. Let's fill the bars with a nice blue color. I'll start over on the code too, so you can see it all together. Note the use of "#5E79A8" to the fill bar color. I used the hex code for a blue-grey color I like. Hex codes are a universal color code that specify the intensity of red, green, blue, and makes it easier to use the same color across multiple programs. If you want to pick your own color, you can use <a href="htmlcolorcodes.com">HTML Color Codes</a> website to pick a color and see the code. I also like the color picker, mixer and shades in <a href="https://www.w3schools.com/colors/">w3schools.com</a>. 
+
+```{r, c71, echo=T}
+
+gett_final <- ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
+              geom_bar(stat = 'identity', fill = "#5E79A8")+
+              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens))+
+              labs(x = "Regeneration Size Class", y = "Stems per sq.m")+
+              theme_FVM()
+
+gett_final
+```
+
+<p class='ques'>Question 11: Take the gett_final graph and make 2 more changes to it. For example, make the line width on the error bars bigger, change the font size of the axis text bigger, tilt the x-axis labels (eg seed15_30) 45 degrees, rename x-axis labels, etc.</p>
+
+#### Summarizing MIDN forest data M1-9{.tabset}
+It's time to put everything you just learned to work! Here I've written the code for RICH that compiles the first 4 metrics that each of you will work on with your parks. We're going to go through each metric line by line to help you understand the process. Then you'll take this code and run it for your parks.
+
+Before we start, let's restart our R session to clear our history and global environment by pressing CTRL + SHFT + F10. You essentially just closed and reopened RStudio, without having to do it physically. So, we'll need to load the packages and import the data again.
+```{r, c72,echo=T, results='hide', message=FALSE}
+library(tidyverse)
+library(forestMIDN)
+library(rgdal)
+
+importCSV("../data")
+
+```
+<details open><summary class='drop'>1. Regeneration by size class map</summary>
+
+This section is devoted to summarizing regeneration density by size class, so we can map them as pie charts in QGIS. We only need the last 4 years of visits, only want native species (we don't consider exotic species part of healthy forest regeneration layer), and only want species that can make it into the canopy. 
+
+Note that after just about every line I run, I usually type head(new_dataframe_name) in the console below to check that it looks right. View(new_dataframe_name) is also a common practice for me. I won't add those here, but you should be doing that on your own throughout. 
+
+```{r,c73, echo=T, results='hide'}
+RICHreg_4yr <- joinRegenData(park = "RICH", speciesType = "native", canopyForm = "canopy", 
+                             units = "sq.m", from = 2016, to = 2019)
+names(RICHreg_4yr)
+sort(unique(RICHreg_4yr$Year))
+length(unique(RICHreg_4yr$Plot_Number)) # 32-Good to know how many plots there are to check against as you're summarizing
+RICHreg_4yr_sum <- RICHreg_4yr %>% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord) %>% 
+                                   summarise(sd15_30 = sum(seed15.30, na.rm = TRUE), 
+                                             sd30_100 = sum(seed30.100, na.rm = TRUE), 
+                                             sd100_150 = sum(seed100.150, na.rm = TRUE), 
+                                             sd150p = sum(seed150p, na.rm = TRUE),
+                                             sap = sum(sap.den, na.rm = TRUE))
+
+```
+In general, it's good practice to hold on to the Event_ID and Location_ID guids throughout your summary process, in case you need to join tables later. They're the safest columns to merge/join. You can either include them in your group_by() statement (like I did), or include them in your summarize() statement by including (Location_ID = first(Location_ID), Event_ID = first(Event_ID)). Any column in the original dataset that isn't in the group_by() or recalculated in summarize() will be dropped in the newly created dataframe. I'm not going to merge this dataframe with another one before I save the output, so I didn't include the guids here. I did leave the X, Y Coordinates in here because we're going to save the output for this section as a shapefile.
+
+You may notice the na.rm=T in sum(). Most of the functions in forestMIDN will have a 0 where there wasn't a seedling or sapling. But, if we didn't include na.rm = TRUE and there was an NA in that column the sum() would fail and return an error. In general R makes you have to think about how to deal with NAs, rather than assuming what to do with them (it's annoying, but for the best).
+
+```{r,c74, echo=T}
+nrow(RICHreg_4yr_sum) # 32 is what we're looking for, since there are 32 plots in RICH.
+```
+Now all we need is to make this a spatial object and save as a shapefile
+
+```{r,c75, echo=T, eval=F}
+coordinates(RICHreg_4yr_sum) <- ~X_Coord + Y_Coord
+proj4string(RICHreg_4yr_sum) <- CRS("+init=epsg:26918")
+writeOGR(RICHreg_4yr_sum, dsn = "./shapefiles", layer = "RICH_regen_by_size_class_M1", driver = "ESRI Shapefile")
+```
+</details>
+</br>
+
+<details open><summary class='drop'>2. Tree diameter distribution figure <b style="color:red">Updated 6-23-20</b></summary>
+Now I'm going to show you all the code to produce the tree diameter distribution plot from Day 3 > forestMIDN > Tree diameter distribution. The dataset we need for the figure will have a row for each cycle (1-3 cycles) plus the last 4 years of data (if that differs from cycle 3 year range) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
+
+First we need to compile the tree diameter distribution data using sumTreeDBHDist(). I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4.
+```{r,c76, echo=T, results='hide'}
+# In RICH, cycle 1 = 2007-2010, cycle 2 = 2011-2014, cycle 3 = 2015-2018, last 4 years is 2016-2019
+RICH_tree_dist_c1.3 <- sumTreeDBHDist(park = "RICH", status = 'live', 
+                                      units = 'density', from = 2007, to = 2018) 
+length(unique(RICH_tree_dist_c1.3$Plot_Name)) # Should be 32
+
+RICH_tree_dist_4yr <- sumTreeDBHDist(park = "RICH", status = 'live',
+                                     units = 'density', from = 2016, to = 2019)
+length(unique(RICH_tree_dist_4yr$Plot_Name)) # Also 32, great.
+
+# Change cycle value to "last4yr"
+RICH_tree_dist_4yr <- RICH_tree_dist_4yr %>% mutate(cycle = "last4yr")
+
+head(RICH_tree_dist_c1.3)
+head(RICH_tree_dist_4yr)
+```
+Now we're going to combine the c1.3 and 4yr datasets, so I can prep all of the data for plotting at the same time. Both datasets have the same columns, so I can combine the two datasets using rbind(), which binds two datasets based on matching their column names.
+
+```{r,c77, echo=T, results = 'hide'}
+RICH_tree_dist <- rbind(RICH_tree_dist_c1.3, RICH_tree_dist_4yr)
+head(RICH_tree_dist)
+table(RICH_tree_dist$cycle)
+```
+RICH_tree_dist now has a record for each plot and cycle in RICH. Now we need to reshape to be long, so that each plot visit has a row for each of the 10 size classes. Then we will group by cycle and size class to calculate average stem density and standard error of stem density for each cycle and size class.
+
+```{r,c78, echo=T, results = 'hide'}
+RICH_tree_dist_long <- RICH_tree_dist %>% select(Plot_Name, cycle, d10_19.9:d100p) %>% 
+                                          pivot_longer(cols = c(d10_19.9:d100p), names_to = "size_class",
+                                                       values_to = "density")
+
+RICH_tree_dist_sum <- RICH_tree_dist_long %>% group_by(cycle, size_class) %>% 
+                                              summarize(avg_dens = mean(density, na.rm = TRUE),
+                                                        se_dens = sd(density, na.rm = TRUE)/
+                                                                    sqrt(sum(!is.na(density))),
+                                                        num_plots = sum(!is.na(density)))
+sort(unique(RICH_tree_dist_sum$size_class))
+
+head(RICH_tree_dist_sum)
+```
+
+The size class order sorts alphabetically, which isn't the order we want. We need to tell R what order to sort the size classes.
+
+```{r, c79,echo=T}
+RICH_tree_dist_sum$size_class <- ordered(RICH_tree_dist_sum$size_class,
+                                         levels = c("d10_19.9", "d20_29.9", "d30_39.9",
+                                                    "d40_49.9", "d50_59.9", "d60_69.9",
+                                                    "d70_79.9", "d80_89.9", "d90_99.9",
+                                                    "d100p"))
+levels(RICH_tree_dist_sum$size_class) #Size classes are in the order we want them now
+
+# Now we need to arrange the data using the new ordered factor levels
+RICH_tree_dist_sum <- RICH_tree_dist_sum %>% arrange(cycle, size_class)
+```
+```{r, echo=T, results='hide'}
+head(RICH_tree_dist_sum)
+```
+
+Now to plot the results, with each cycle getting it's own plot using the facet_wrap function in ggplot2.
+```{r,c80, echo=T}
+# Set up labels for facet wrap
+cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3', 'last4yr' = "Last 4 yrs: 2016-2019")
+
+# Make ggplot graph
+tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_dens))+
+                         geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
+                         geom_errorbar(aes(ymin = avg_dens - se_dens, 
+                                           ymax = avg_dens + se_dens, x = size_class),
+                                       color = "#696969", #hexcode for DimGrey)
+                                       width = 0.2, position = position_dodge(0.9))+
+                         facet_wrap(~cycle, ncol=4, labeller = as_labeller(cycle_names))+
+                         labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
+                         theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+                         scale_x_discrete(labels= c('10-20', '20-30', '30-40','40-50',
+                                                    '50-60','60-70','70-80',
+                                                    '80-90','90-100','100+'))+
+                         theme_FVM()
+print(tree_dist_plot)
+```
+
+Now save ggplot graph as jpeg using the ggsave function from ggplot2. 
+```{r, c81, echo=T}
+ggsave("./figures/RICH_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300, 
+       width = 10, height = 7, units = 'in')
+```
+</details>
+</br>
+
+<details open><summary class='drop'>2. Tree diameter distribution figure for NCBN park <b style="color:red">Updated 6-23-20</b></summary>
+```{r,c76SAHI, echo=T, results='hide'}
+# In SAHI, cycle 1 = 2008-2011, cycle 2 = 2012-2015, cycle 3 = 2016-2019
+SAHI_tree_dist <- sumTreeDBHDist(park = "SAHI", status = 'live', 
+                                      units = 'density', from = 2007, to = 2019) 
+
+length(unique(SAHI_tree_dist$Plot_Name)) # Should be 4
+
+SAHI_tree_dist_long <- SAHI_tree_dist %>% select(Plot_Name, cycle, d10_19.9:d100p) %>% 
+                                          pivot_longer(cols = c(d10_19.9:d100p), names_to = "size_class",
+                                                       values_to = "density")
+
+SAHI_tree_dist_sum <- SAHI_tree_dist_long %>% group_by(cycle, size_class) %>% 
+                                              summarize(avg_dens = mean(density, na.rm = TRUE),
+                                                        se_dens = sd(density, na.rm = TRUE)/
+                                                                    sqrt(sum(!is.na(density))),
+                                                        num_plots = sum(!is.na(density)))
+
+SAHI_tree_dist_sum$size_class <- ordered(SAHI_tree_dist_sum$size_class,
+                                         levels = c("d10_19.9", "d20_29.9", "d30_39.9",
+                                                    "d40_49.9", "d50_59.9", "d60_69.9",
+                                                    "d70_79.9", "d80_89.9", "d90_99.9",
+                                                    "d100p"))
+levels(SAHI_tree_dist_sum$size_class) #Size classes are in the order we want them now
+
+# Now we need to arrange the data using the new ordered factor levels and are ready to plot
+SAHI_tree_dist_sum <- SAHI_tree_dist_sum %>% arrange(cycle, size_class)
+
+# Set up labels for facet wrap
+cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3')
+
+# Make ggplot graph
+tree_dist_plot <- ggplot(data = SAHI_tree_dist_sum, aes(x = size_class, y = avg_dens))+
+                         geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
+                         geom_errorbar(aes(ymin = avg_dens - se_dens, 
+                                           ymax = avg_dens + se_dens, x = size_class),
+                                       color = "#696969", #hexcode for DimGrey)
+                                       width = 0.2, position = position_dodge(0.9))+
+                         facet_wrap(~cycle, ncol=3, labeller = as_labeller(cycle_names))+
+                         labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
+                         theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+                         scale_x_discrete(labels= c('10-20', '20-30', '30-40','40-50',
+                                                    '50-60','60-70','70-80',
+                                                    '80-90','90-100','100+'))+
+                         theme_FVM()
+print(tree_dist_plot)
+```
+
+Now save ggplot graph as jpeg using the ggsave function from ggplot2. 
+```{r, c81SAHI, echo=T}
+ggsave("./figures/SAHI_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300, 
+       width = 10, height = 7, units = 'in')
+```
+</details>
+</br>
+
+<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 6-23-20</b></summary>
+Similar to the tree diameter distribution plot, the dataset we need for this figure will have a row for each cycle (1-3 cycles, and last 4 years) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
+
+I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4, and change the cycle to "last4yr", so I can use cycle as the grouping factor to summarize.
+```{r,c82, echo=T, results='hide'}
+RICH_regen_c1.3 <- joinRegenData(park = "RICH", speciesType = "native", canopyForm = "canopy", 
+                                 units = "sq.m", from = 2007, to = 2018)
+
+length(unique(RICH_regen_c1.3$Plot_Number)) # 32-Good to know how many plots there are to check against as you're summarizing
+
+RICH_regen_4yr <- joinRegenData(park = "RICH", speciesType = "native", canopyForm = "canopy",
+                                units = "sq.m", from = 2016, to = 2019)
+
+RICH_regen_4yr <- RICH_regen_4yr %>% mutate(cycle = "last4yr")
+
+RICH_regen <- rbind(RICH_regen_c1.3, RICH_regen_4yr)
+
+# RICH_regen is split up by species. We need to add them together to get seedling counts 
+# by size class in each plot visit.
+RICH_regen2 <- RICH_regen %>% group_by(Plot_Name, cycle) %>% 
+                              summarise(sd15_30 = sum(seed15.30, na.rm = TRUE), 
+                                        sd30_100 = sum(seed30.100, na.rm = TRUE), 
+                                        sd100_150 = sum(seed100.150, na.rm = TRUE), 
+                                        sd150p = sum(seed150p, na.rm = TRUE),
+                                        sap = sum(sap.den, na.rm = TRUE))
+```
+```{r,c83, echo=T}
+table(RICH_regen2$cycle) #32 rows in each cycle, means 32 plots represented in each cycle. Correct!
+```
+Like the tree diameter distribution, we now need to reshape the data to calculate mean and standard error of RICH for each cycle and size class. We'll also make the size_class column an ordered factor and set the orders, like with the tree data above.
+```{r, c84,echo=T, results='hide'}
+RICH_regen_long <- RICH_regen2 %>% select(Plot_Name, cycle, sd15_30:sap) %>% 
+                                      pivot_longer(cols = c(sd15_30:sap), names_to = "size_class",
+                                                   values_to = "density")
+
+RICH_regen_sum <- RICH_regen_long %>% group_by(cycle, size_class) %>% 
+                                      summarize(avg_dens = mean(density, na.rm = TRUE),
+                                                se_dens = sd(density, na.rm = TRUE)/sqrt(sum(!is.na(density))),
+                                                num_plots = sum(!is.na(density)))
+
+RICH_regen_sum$size_class <- ordered(RICH_regen_sum$size_class,
+                                     levels = c("sd15_30", "sd30_100", "sd100_150", "sd150p", "sap"))
+
+RICH_regen_sum <- RICH_regen_sum %>% arrange(cycle, size_class)
+```
+```{r,c85, echo=T}
+head(RICH_regen_sum)
+```
+
+The data are ready to plot.
+
+```{r,c86, echo=T}
+
+# Set up labels for facet wrap
+cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3', 'last4yr' = "Last 4 yrs: 2016-2019")
+
+# Make ggplot graph
+regen_plot <- ggplot(data = RICH_regen_sum, aes(x = size_class, y = avg_dens))+
+                     geom_bar(stat = 'identity', fill = '#5F9EA0')+ #hexcode for CadetBlue
+                     geom_errorbar(aes(ymin = avg_dens - se_dens, 
+                                       ymax = avg_dens + se_dens, x = size_class),
+                                       color = "#696969", #hexcode for DimGrey)
+                                       width = 0.2, position = position_dodge(0.9))+
+                     facet_wrap(~cycle, ncol=4, labeller = as_labeller(cycle_names))+
+                     labs(x = "Regeneration Density (cm)", y = "stems/ha")+
+                     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+                     scale_x_discrete(labels= c('15-30cm', '30-100cm', '100-150cm','>150cm',
+                                                '1-10cm DBH'))+
+                     theme_FVM()
+print(regen_plot)
+
+```
+
+Now save ggplot graph as jpeg. 
+
+```{r, c87,echo=T}
+ggsave("./figures/RICH_Regen_size_class_M3.jpg", regen_plot, dpi = 300, 
+       width = 10, height = 7, units = 'in')
+```
+</details>
+</br>
+
+<details open><summary class='drop'>4. Regen density by cycle map</summary>
+For this summary, we're going to include all years, since we're mapping each plot. Our end result will have a row for each plot and a column for each of the 4 cycles that shows the regeneration density. Regeneration density is the sum of all seedlings and saplings/m2.
+
+```{r,c89, echo=T, results='hide'}
+RICH_regen_map <- joinRegenData(park = "RICH", speciesType = "native", canopyForm = "canopy", 
+                                units = "sq.m", from = 2007, to = 2019)
+
+# RICH_regen_map is split up by species. We need to add them together to get seedling counts 
+# by size class in each plot visit. We include X_Coord and Y_Coord, because we're saving output as shapefile
+RICH_regen_map2 <- RICH_regen_map %>% group_by(Plot_Name, Plot_Number, cycle, X_Coord, Y_Coord) %>% 
+                                      summarise(sd15_30 = sum(seed15.30, na.rm = TRUE), 
+                                                sd30_100 = sum(seed30.100, na.rm = TRUE), 
+                                                sd100_150 = sum(seed100.150, na.rm = TRUE), 
+                                                sd150p = sum(seed150p, na.rm = TRUE),
+                                                sap = sum(sap.den, na.rm = TRUE))
+
+# Now we need to calculate the total regen density using the columns we just created, and spread so that there's
+# a column for each cycle.
+RICH_regen_map3 <- RICH_regen_map2 %>% mutate(regen_dens = sd15_30 + sd30_100 + sd100_150 + sd150p + sap) %>% 
+                                       select(Plot_Name, Plot_Number, X_Coord, Y_Coord, cycle,
+                                              regen_dens) %>% 
+                                       pivot_wider(names_from = "cycle", values_from = "regen_dens",
+                                                   values_fill = NA)
+
+head(RICH_regen_map3)
+nrow(RICH_regen_map3)
+```
+
+The last step to get to RICH_regen_map3 created the regen_dens column that summed all of the seedlings and saplings together. We then selected the columns we care about with select. Finally, we reshaped the data so that we end up with one row for each plot and a column for each cycle that shows the regeneration density. Noe the use of values_fill = NA. That forces plots that haven't been sampled in cycle 4 to show NA (blank) instead of 0. Now to save as a shapefile.
+```{r, c90,echo=T, eval=F}
+coordinates(RICH_regen_map3) <- ~X_Coord + Y_Coord
+proj4string(RICH_regen_map3) <- CRS("+init=epsg:26918")
+writeOGR(RICH_regen_map3, dsn = "./shapefiles", layer = "RICH_regen_density_by_cycle_M4", driver = "ESRI Shapefile")
+```
+
+</details>
+</br>
+
+<details open><summary class='drop'>5. Seedlings, Saplings, Stocking Index table</summary>
+For this summary, we're going to include all years, since we're mapping each plot. Our end result will have a row for each plot. The table will have 3 sets of columns that each have a column for cycle 1-4. The 3 sets of columns are seedling density, sapling density, and stocking index. 
+
+```{r,c91, echo=T, results='hide'}
+RICH_regen_tbl <- joinRegenData(park = "RICH", speciesType = "native", canopyForm = "canopy", 
+                                units = "sq.m", from = 2007, to = 2019)
+
+RICH_regen_tbl2 <- RICH_regen_tbl %>% group_by(Plot_Name, cycle) %>% 
+                                      summarise(sd15_30 = sum(seed15.30, na.rm = TRUE), 
+                                                sd30_100 = sum(seed30.100, na.rm = TRUE), 
+                                                sd100_150 = sum(seed100.150, na.rm = TRUE), 
+                                                sd150p = sum(seed150p, na.rm = TRUE),
+                                                seed = sd15_30 + sd30_100 + sd100_150 + sd150p,
+                                                sap = sum(sap.den, na.rm = TRUE),
+                                                stock = sum(stock, na.rm = TRUE)) %>% # note the addition of stock here
+                                      select(Plot_Name, cycle, seed, sap, stock)
+
+
+```
+
+Now we need to take the cycle column and reshape it wide so that there's a c1-4 column for each seed, sap, stock metric. One of the great features with pivot_wider() is you can reshape multiple columns at the same time (spread() can't)
+
+```{r, c92,echo=T}
+RICH_regen_tbl3 <- RICH_regen_tbl2 %>% pivot_wider(names_from = "cycle", 
+                                                   values_from = c("seed", "sap", "stock"),
+                                                   values_fill = NA)
+```
+```{r, c93,echo=T, eval=FALSE}
+View(RICH_regen_tbl3)
+```
+I'm still amazed by that. The spread() function could only do seed, sap or stock one at a time, then you had to merge them at the end. I was on the fence about switching to pivot_wider(), but now I think I'm sold. Now we just need to save the output as a csv, then open in Excel and add the finishing touches.
+```{r, c94,echo=T, results='hide'}
+write.csv(RICH_regen_tbl3, './tables/Seedlings_saplings_stocking_table_M5.csv', row.names = FALSE)
+#row.names=FALSE removes the first unnamed column that's numbered.
+```
+</details>
+</br>
+
+<details open><summary class='drop'>6. Deer browse index map</summary>
+For this summary, we're going pull out the deer browse index assigned to each plot in the most recent visit, and save it as a shapefile to map.
+```{r, c95,echo=T, results='hide', eval=F}
+RICH_dbi_shp <- joinStandData(park = "RICH", from = 2016, to = 2019) 
+names(RICH_dbi_shp)
+nrow(RICH_dbi_shp)
+# Just want to clean this up and only take the columns we need
+RICH_dbi_shp2 <- RICH_dbi_shp %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, Deer_Browse_Line_ID) %>% 
+  rename(DBI = Deer_Browse_Line_ID)
+
+# Make shapefile
+coordinates(RICH_dbi_shp2) <- ~X_Coord + Y_Coord
+proj4string(RICH_dbi_shp2) <- CRS("+init=epsg:26918")
+writeOGR(RICH_dbi_shp2, dsn = "./shapefiles", layer = "RICH_DBI_M6", driver = "ESRI Shapefile")
+```
+
+</details>
+</br>
+
+<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 6-23-20</b></summary>
+For this summary, we're going average the deer browse by each completed cycle and the last 4 years, and then graph the results as points with error bars in ggplot.  
+```{r, c96,echo=T}
+RICH_dbi_c1.3 <- joinStandData(park = "RICH", from = 2009, to = 2018)
+RICH_dbi_4yr <- joinStandData(park = "RICH", from =2016, to = 2019) %>% 
+                  mutate(cycle = "last4yr") # Most of my functions work with pipes too, fyi
+
+RICH_dbi <- rbind(RICH_dbi_c1.3, RICH_dbi_4yr)
+
+RICH_dbi_sum <- RICH_dbi %>% select(Plot_Name, cycle, Deer_Browse_Line_ID) %>% 
+                             group_by(cycle) %>% 
+                             summarize(mean_dbi = mean(Deer_Browse_Line_ID, na.rm = TRUE),
+                                       se_dbi = sd(Deer_Browse_Line_ID, na.rm = TRUE)/sqrt(sum(!is.na(Deer_Browse_Line_ID))),
+                                       numplots = sum(!is.na(Deer_Browse_Line_ID)))
+RICH_dbi_sum
+sort(unique(RICH_dbi_sum$cycle)) # they're in the right order, so don't need to reset order before plotting.
+
+```
+Note with the deer browse index is that we didn't start collecting it until 2009, which means only 2 of the 4 panels in cycle 1 have data in RICH. That's why there are only 16 plots in cycle 1 when you print RICH_dbi_sum. It's still worth using cycle 1, but we need to add that caveat to the figure caption.
+Now we're going to plot the data.
+
+```{r, c97,echo = T}
+dbi_plot <- ggplot(data = RICH_dbi_sum, aes(x = cycle, y = mean_dbi))+
+                   geom_errorbar(aes(ymin = mean_dbi - se_dbi, 
+                                     ymax = mean_dbi + se_dbi, x = cycle),
+                                     color = "#696969", #hexcode for DimGrey)
+                                     width = 0.3, position = position_dodge(0.9))+
+                   geom_point(size=3)+ #ordered so points are drawn on top of error bars
+                   labs(x = NULL, y = "Average Deer Browse Impact")+
+                   theme(axis.text.y = element_text(angle = 45, hjust = 1))+
+                   scale_x_discrete(labels= c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
+                   scale_y_continuous(limits = c(1.5,5.5), breaks = c(2, 3, 4, 5), 
+                                      labels = c("Low", "Moderate", "High", "Severe"))+  
+                   theme_FVM()
+                   
+  
+dbi_plot
+```
+
+Now save the plot
+
+```{r, c98,echo=T}
+ggsave("./figures/RICH_DBI_by_cycle_M7.jpg", dbi_plot, dpi = 300, 
+       width = 10, height = 7, units = 'in')
+```
+
+</details>
+</br>
+
+<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 6-23-20</b></summary>
+This summary will result in a bar chart of the mean stocking index for each cycle and the last 4 years, along with horizontal lines to indicate the stocking index thresholds. First we need to summarize the data using joinRegenData(). We also only want to include native canopy forming species.
+
+```{r,c99, echo=T, results = 'hide'}
+RICH_stock_c1.3 <- joinRegenData(park = "RICH", from = 2007, to = 2018, units = "sq.m",
+                                 speciesType = "native", canopyForm = 'canopy') 
+
+RICH_stock_4yr <- joinRegenData(park = "RICH", from = 2016, to = 2019,  units = "sq.m",
+                                speciesType = "native", canopyForm = "canopy") %>% 
+                    mutate(cycle = "last4yr")
+
+RICH_stock <- rbind(RICH_stock_c1.3, RICH_stock_4yr)
+
+```
+
+RICH_stock includes species-level stocking for each plot, so we need to sum the stocking index to the plot level.
+```{r, c100,echo=T, results='hide'}
+RICH_stock_sum <- RICH_stock %>% group_by(Plot_Name, cycle) %>% 
+                                 summarize(stock = sum(stock, na.rm = TRUE))
+head(RICH_stock_sum)
+table(RICH_stock_sum$cycle) #32 plots in each cycle and last4yrs
+
+```
+
+Now we want to average the stocking index by cycle.
+
+```{r, c101,echo=T}
+RICH_stock_final <- RICH_stock_sum %>% group_by(cycle) %>% 
+                                       summarize(mean_stock = mean(stock, na.rm = TRUE),
+                                                 se_stock = sd(stock, na.rm = TRUE)/sqrt(sum(!is.na(stock))),
+                                                 numplots = sum(!is.na(stock)))
+RICH_stock_final
+```
+
+Results are ready to plot.
+
+```{r,c102, echo=T}
+stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
+                     geom_bar(stat = 'identity', fill = '#5F9EA0', width = 0.8)+
+                     geom_errorbar(aes(ymin = mean_stock - se_stock, 
+                                       ymax = mean_stock + se_stock, x = cycle), 
+                                   color = "#696969", width = 0.2)+
+                     labs(x = NULL, y = "Mean Stocking Index (per sq.m)")+
+                     scale_x_discrete(labels = c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
+                     theme_FVM()+
+                     geom_hline(yintercept = 1.989, lty = 2, lwd = 1, color = '#CD5C5C')+ #IndianRed
+                     geom_hline(yintercept = 7.958, lty = 3, lwd = 1, color = '#32CD32') #LimeGreen
+stock_plot
+```
+
+Now save the plot
+
+```{r, c103,echo=T}
+ggsave("./figures/RICH_stock_by_cycle_M8.jpg", stock_plot, dpi = 300, 
+       width = 10, height = 7, units = 'in')
+```
+
+</details>
+</br>
+
+<details open><summary class='drop'>9. Stocking Index map </summary>
+For this summary, we want the output to include a stocking index value for each plot from the last 4 years, and we'll save it as a shapefile.
+```{r, c104,echo=T, eval=F}
+RICH_stock_shp <- joinRegenData(park = "RICH", from = 2016, to = 2019, speciesType = 'native', 
+                                canopyForm = 'canopy', units = 'sq.m') 
+
+RICH_stock_shp2 <- RICH_stock_shp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord) %>% 
+                                      summarize(stock = sum(stock))
+
+coordinates(RICH_stock_shp2) <- ~X_Coord + Y_Coord
+proj4string(RICH_stock_shp2) <- CRS("+init=epsg:26918")
+writeOGR(RICH_stock_shp2, dsn = "./shapefiles", layer = "RICH_stock_M9", driver = "ESRI Shapefile")
+
+```
+</details>
+</br>
+
+
+#### Assignments
+Please complete the assignments below. 
+<ul>
+  <li>View QGIS training videos and read Moduel 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.</li>
+  <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
+  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
+</ul>
+### Answers{.tabset}
+<h2>Day 1</h2>
+<details><summary class='ques2'>Question 1: How do you find the value of the 3rd row of domSpp?</summary>
+```{r, c105,echo=T, results='show'}
+df[3, c("domSpp")]
+```
+</details>
+</br>
+<details><summary class='ques2'>Question 2: How would you make numtrees an integer?</summary> 
+```{r, c106,echo=T, results='show'}
+df$numtrees <- as.integer(df$numtrees)
+str(df)
+```
+</details>
+</br>
+<details><summary class='ques2'>Question 3: How would you calculate the percent of trees that are dead?</summary>
+```{r, c107,echo=T, results='hide'}
+# base R version (2 options)
+df$numdead <- df$numtrees - df$numLive
+df$pctdead <- df$numdead/df$numtrees*100
+
+df$pctdead <- with(df, (numtrees - numLive)/numtrees*100)
+
+# tidyverse version (2 options)
+df <- df %>% mutate(numdead = numtrees - numLive,
+                    pctdead = numdead/numtrees*100)
+
+df <- df %>% mutate(pctdead = (numtrees - numLive)/numtrees*100)
+```
+</details>
+</br>
+<h2>Day 2</h2>
+<details><summary class='ques2'>Question 4: How would you select only the plots in VAFO and HOFU from the loc table?</summary>
+```{r, c108, echo=T, results='hide'}
+loc_VAFO_HOFU <- loc[loc$Unit_ID %in% c("VAFO", "HOFU") & !is.na(loc$Unit_ID),]
+
+loc_VAFO_HOFU_tidy <- loc %>% filter(Unit_ID %in% c("VAFO", "HOFU"))
+
+```
+</details>
+</br>
+<details><summary class='ques2'>Question 5: How many plots are in VAFO and HOFU combined (based on loc table)?</summary>
+```{r, c109,echo=T, results='show'}
+loc_VAFO_HOFU_tidy <- loc %>% filter(Unit_ID %in% c("VAFO", "HOFU"))
+length(unique(loc_VAFO_HOFU_tidy$Plot_Number)) # NA was counted as one of the unique values. Oops!
+length(unique(loc_VAFO_HOFU_tidy$Plot_Number[!is.na(loc_VAFO_HOFU_tidy$Plot_Number)])) #Not very readable!
+
+loc_VAFO_HOFU_tidy_no_nas <- loc %>% filter(Unit_ID %in% c("VAFO", "HOFU") & !is.na(Plot_Number))
+length(unique(loc_VAFO_HOFU_tidy_no_nas$Plot_Number)) 
+
+```
+Note that MIDN plot numbers are unique, so there's only one plot 1 in the entire loc table.
+</details>
+</br>
+<details><summary class='ques2'>Question 6: How would you calculate the min and max for seed_den_m2?</summary>
+```{r, c110,echo=T, results='show'}
+reg_by_park2 <- regdf %>% group_by(Unit_Code) %>% 
+                          summarize(min_seed_dens = min(seed_den_m2),
+                          max_seed_dens = max(seed_den_m2))
+
+reg_by_park2
+```
+</details>
+</br>
+<details><summary class='ques2'>Question 7: How would you take only QA/QC events and join the loc table to QA/QC events only?</summary>
+```{r, c111,echo=T, results='hide'}
+eventQAQC <- event %>% filter(Event_QAQC == TRUE)
+locevent_QAQC <- merge(loc, eventQAQC, by="Location_ID", all.x = F, all.y = T)
+```
+This is technically a right join, because I'm telling R to take all of the records from the right table (eventQAQC) and only join records in left (loc) table that match. This is just a style preference. I prefer to keep higher level tables to the left of lower level tables (eg tables with 1 to many relationships). The loc (tbl_Locations) table is higher level than the event (tbl_Events) table, because the loc table has the 1 plot record and the event table has the many visits for the plot records. If this is confusing, don't worry about it. You'll just notice that it's the order I generally organize data in my code.  
+</details>
+</br>
+<h2>Day 3</h2>
+<details><summary class='ques2'>Question 8: How many plots were sampled in APCO in 2018?</summary>
+```{r, c112,echo=T}
+apco <- joinLocEvent(park = "APCO", from = 2018, to = 2018)
+length(unique(apco$Plot_Number))
+```
+</details>
+</br>
+
+<details><summary class='ques2'>Question 9: Which plot in FRSP has the highest density of live trees in the 90-99.9cm size class for any year?</summary>
+```{r, c113,echo=T}
+frsp_tree_dist <- sumTreeDBHDist(park = "FRSP", status = 'live')
+
+frsp_tree_max90 <- frsp_tree_dist %>% arrange(desc(d90_99.9))
+head(frsp_tree_max90) # FRSP-288 
+
+# If you wanted to pull out the top record for that size class, you can also do one of the two options below
+frsp_top_90 <- frsp_tree_dist[which.max(frsp_tree_dist$d90_99.9),] #The ugly base R approach 
+frsp_top_90_tidy <- frsp_tree_dist %>% arrange(desc(d90_99.9)) %>% slice(1) #The tidyverse approach
+head(frsp_top_90)
+```
+</details>
+</br>
+<details><summary class='ques2'>Question 10: How would you create a wide matrix for FRSP plots in 2019 that has plots for rows, and exotic species as columns?</summary>
+
+<p class='ques'>Answer has been updated 6/9/2020 based on fixes in forestMIDN.</p>
+```{r, c114,echo=T}
+frsp_exo <- makeSppList(park = "FRSP", from = 2019, to = 2019, speciesType = "exotic") 
+
+# Old school spread version
+frsp_wide_spread <- frsp_exo %>% select(Plot_Name, Latin_Name, present) %>% 
+                                 arrange(Latin_Name, Plot_Name) %>% 
+                                 spread("Latin_Name", "present", fill = 0)
+
+# Newer pivot version
+frsp_wide_pivot <- frsp_exo %>% select(Plot_Name, Latin_Name, present) %>% 
+                                arrange(Latin_Name, Plot_Name) %>% 
+                                pivot_wider(names_from = "Latin_Name", 
+                                            values_from = "present",
+                                            values_fill = 0) 
+
+head(frsp_wide_pivot)
+```
+</details>
+</br>
+<h2>Day 4</h2>
+<details><summary class='ques2'>Question 11: Take the gett_final graph and make 2 more changes to it.</summary>
+
+You may have chosen other things to do than I did. Here are a couple of changes to the ggplot bar chart
+```{r, c115,echo=T}
+
+ ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
+              geom_bar(stat = 'identity', fill = "steelblue4")+
+              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens), width = 0.2, lwd = 0.7)+
+              labs(x = "Regeneration Size Class", y = "Stems per sq.m")+
+              theme_FVM()+
+              theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #hjust is centering horizontally
+              scale_x_discrete(labels = c('15-30cm', '30-100cm', '100-150cm', '>150cm', '1-10cm DBH'))
+             
+```
+
+Note that width = 0.2 in the geom_errorbar is the width of the caps on the bars. lwd is the weight of the line. 
+</details>
+</br>
+
+### Code printout {.tabset}
+This tab prints all of the code chunks in this file in one long file.
+```{r show-code, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```
