@@ -798,7 +798,7 @@ STAT545: <a href="https://stat545.com/dplyr-intro.html">Chapter 6. Intro to dply
 Answer the questions for this day and review today’s code. Answers are in the Answers tab.
 </li>
 <li>
-Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
+Complete the Feedback form by the end of the day
 </li>
 </ul>
 </div>
@@ -1095,7 +1095,7 @@ STAT545: <a href="https://stat545.com/join-cheatsheet.html">Chapter 15. Join two
 Answer the questions for this day and review today’s code
 </li>
 <li>
-Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
+Complete the Feedback form by the end of the day
 </li>
 </ul>
 </div>
@@ -1394,7 +1394,7 @@ Mastering Software Development in R: <a href="https://bookdown.org/rdpeng/RProgD
 Answer the questions for this day and review today’s code. Answers are in the Answers tab.
 </li>
 <li>
-Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
+Complete the Feedback form by the end of the day
 </li>
 </ul>
 </div>
@@ -1505,7 +1505,7 @@ View QGIS training videos and read Module 2 and 3 of <a href="https://docs.qgis.
 Answer the questions for this day and review today’s code. Answers are in the Answers tab.
 </li>
 <li>
-Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
+Complete the Feedback form by the end of the day
 </li>
 </ul>
 </div>
@@ -2121,7 +2121,8 @@ library(rgdal)
 
 importCSV(&quot;../data&quot;)</code></pre>
 <details open>
-<p><summary class="drop">10. Regeneration by composition map</summary></p>
+<p><summary class="drop">10. Regeneration by composition map</summary> This metric uses the joinRegenData() function to pull in the last 4 years of data, then uses group_by and summarize to generate a shapefile that has a row for every plot and a column for species, using codes. This time, we want to bring in all species, not just native and canopy species.</p>
+<pre class="r"><code>RICH_regen_spp &lt;- joinRegenData(park = &quot;RICH&quot;, from = 2016, to = 2019)</code></pre>
 </details>
 </div>
 <div id="code-printout" class="section level3 tabset">
@@ -2905,7 +2906,9 @@ library(tidyverse)
 library(forestMIDN)
 library(rgdal)
 
-importCSV(&quot;../data&quot;)</code></pre>
+importCSV(&quot;../data&quot;)
+
+RICH_regen_spp &lt;- joinRegenData(park = &quot;RICH&quot;, from = 2016, to = 2019)</code></pre>
 </div>
 </div>
 
