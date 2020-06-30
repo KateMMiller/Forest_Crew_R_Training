@@ -1510,6 +1510,201 @@ Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfK
 </ul>
 </div>
 </div>
+<div id="answers" class="section level3 tabset">
+<h3>Answers</h3>
+<h2>
+Day 1
+</h2>
+<details>
+<p><summary class="ques2">Question 1: How do you find the value of the 3rd row of domSpp?</summary></p>
+<pre class="r"><code>df[3, c(&quot;domSpp&quot;)]</code></pre>
+<pre><code>## [1] &quot;loblolly_pine&quot;</code></pre>
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 2: How would you make numtrees an integer?</summary></p>
+<pre class="r"><code>df$numtrees &lt;- as.integer(df$numtrees)
+str(df)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    6 obs. of  6 variables:
+##  $ plot         : num  1 2 3 4 5 7
+##  $ numtrees     : int  24 18 17 14 31 27
+##  $ numLive      : num  21 18 16 10 29 26
+##  $ domSpp       : chr  &quot;red_maple&quot; &quot;willow_oak&quot; &quot;loblolly_pine&quot; &quot;sweet_gum&quot; ...
+##  $ invasive_pres: logi  TRUE FALSE FALSE FALSE FALSE TRUE
+##  $ numdead      : num  3 0 1 4 2 1</code></pre>
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 3: How would you calculate the percent of trees that are dead?</summary></p>
+<pre class="r"><code># base R version (2 options)
+df$numdead &lt;- df$numtrees - df$numLive
+df$pctdead &lt;- df$numdead/df$numtrees*100
+
+df$pctdead &lt;- with(df, (numtrees - numLive)/numtrees*100)
+
+# tidyverse version (2 options)
+df &lt;- df %&gt;% mutate(numdead = numtrees - numLive,
+                    pctdead = numdead/numtrees*100)
+
+df &lt;- df %&gt;% mutate(pctdead = (numtrees - numLive)/numtrees*100)</code></pre>
+</details>
+</br>
+<h2>
+Day 2
+</h2>
+<details>
+<p><summary class="ques2">Question 4: How would you select only the plots in VAFO and HOFU from the loc table?</summary></p>
+<pre class="r"><code>loc_VAFO_HOFU &lt;- loc[loc$Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(loc$Unit_ID),]
+
+loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))</code></pre>
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 5: How many plots are in VAFO and HOFU combined (based on loc table)?</summary></p>
+<pre class="r"><code>loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
+length(unique(loc_VAFO_HOFU_tidy$Plot_Number)) # NA was counted as one of the unique values. Oops!</code></pre>
+<pre><code>## [1] 46</code></pre>
+<pre class="r"><code>length(unique(loc_VAFO_HOFU_tidy$Plot_Number[!is.na(loc_VAFO_HOFU_tidy$Plot_Number)])) #Not very readable!</code></pre>
+<pre><code>## [1] 45</code></pre>
+<pre class="r"><code>loc_VAFO_HOFU_tidy_no_nas &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(Plot_Number))
+length(unique(loc_VAFO_HOFU_tidy_no_nas$Plot_Number)) </code></pre>
+<pre><code>## [1] 45</code></pre>
+Note that MIDN plot numbers are unique, so there’s only one plot 1 in the entire loc table.
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 6: How would you calculate the min and max for seed_den_m2?</summary></p>
+<pre class="r"><code>reg_by_park2 &lt;- regdf %&gt;% group_by(Unit_Code) %&gt;% 
+                          summarize(min_seed_dens = min(seed_den_m2),
+                          max_seed_dens = max(seed_den_m2))
+
+reg_by_park2</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   Unit_Code min_seed_dens max_seed_dens
+##   &lt;chr&gt;             &lt;dbl&gt;         &lt;dbl&gt;
+## 1 HOFU                  0          9.33
+## 2 RICH                  0          3.42
+## 3 VAFO                  0          2.92</code></pre>
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 7: How would you take only QA/QC events and join the loc table to QA/QC events only?</summary></p>
+<pre class="r"><code>eventQAQC &lt;- event %&gt;% filter(Event_QAQC == TRUE)
+locevent_QAQC &lt;- merge(loc, eventQAQC, by=&quot;Location_ID&quot;, all.x = F, all.y = T)</code></pre>
+This is technically a right join, because I’m telling R to take all of the records from the right table (eventQAQC) and only join records in left (loc) table that match. This is just a style preference. I prefer to keep higher level tables to the left of lower level tables (eg tables with 1 to many relationships). The loc (tbl_Locations) table is higher level than the event (tbl_Events) table, because the loc table has the 1 plot record and the event table has the many visits for the plot records. If this is confusing, don’t worry about it. You’ll just notice that it’s the order I generally organize data in my code.
+</details>
+</br>
+<h2>
+Day 3
+</h2>
+<details>
+<p><summary class="ques2">Question 8: How many plots were sampled in APCO in 2018?</summary></p>
+<pre class="r"><code>apco &lt;- joinLocEvent(park = &quot;APCO&quot;, from = 2018, to = 2018)
+length(unique(apco$Plot_Number))</code></pre>
+<pre><code>## [1] 7</code></pre>
+</details>
+<p></br></p>
+<details>
+<p><summary class="ques2">Question 9: Which plot in FRSP has the highest density of live trees in the 90-99.9cm size class for any year?</summary></p>
+<pre class="r"><code>frsp_tree_dist &lt;- sumTreeDBHDist(park = &quot;FRSP&quot;, status = &#39;live&#39;)
+
+frsp_tree_max90 &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9))
+head(frsp_tree_max90) # FRSP-288 </code></pre>
+<pre><code>##                            Location_ID                             Event_ID
+## 1 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 C33BB3EC-724C-401D-BF81-3D4E2DBE9B71
+## 2 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 0D0E5E86-16EB-46F1-A58F-464B8EB0B927
+## 3 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 05E38C88-3661-448A-A180-25C8A32703C8
+## 4 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 3B3F40C0-B1A1-4309-A31D-5C410E640EC3
+## 5 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 1750781A-F44B-4069-B106-753F0BB57850
+## 6 93C2789D-59BE-47FB-B051-3E7085E0AD9E AFAAB365-BE32-4A40-B91C-00E0A7148A5D
+##   Plot_Name Unit_Code Plot_Number X_Coord Y_Coord Panel Year Event_QAQC  cycle
+## 1  FRSP-288      FRSP         288  260854 4242026     4 2014      FALSE Cycle2
+## 2  FRSP-288      FRSP         288  260854 4242026     4 2018      FALSE Cycle3
+## 3  FRSP-001      FRSP         001  284595 4237044     1 2007      FALSE Cycle1
+## 4  FRSP-001      FRSP         001  284595 4237044     1 2011      FALSE Cycle2
+## 5  FRSP-001      FRSP         001  284595 4237044     1 2015      FALSE Cycle3
+## 6  FRSP-002      FRSP         002  285600 4237050     1 2007      FALSE Cycle1
+##   Loc_Type d10_19.9 d20_29.9 d30_39.9 d40_49.9 d50_59.9 d60_69.9 d70_79.9
+## 1       VS      275      200      125        0        0        0        0
+## 2       VS      275      175      125        0        0        0        0
+## 3       VS      300      150       75       25       25        0        0
+## 4       VS      325      150       50       25       25        0        0
+## 5       VS      350      150       50       25       25        0        0
+## 6       VS      250       75       75       75       50        0        0
+##   d80_89.9 d90_99.9 d100p unknown
+## 1        0       25     0       0
+## 2        0       25     0       0
+## 3        0        0     0       0
+## 4        0        0     0      25
+## 5        0        0     0       0
+## 6        0        0     0       0</code></pre>
+<pre class="r"><code># If you wanted to pull out the top record for that size class, you can also do one of the two options below
+frsp_top_90 &lt;- frsp_tree_dist[which.max(frsp_tree_dist$d90_99.9),] #The ugly base R approach 
+frsp_top_90_tidy &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9)) %&gt;% slice(1) #The tidyverse approach
+head(frsp_top_90)</code></pre>
+<pre><code>##                              Location_ID                             Event_ID
+## 284 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 C33BB3EC-724C-401D-BF81-3D4E2DBE9B71
+##     Plot_Name Unit_Code Plot_Number X_Coord Y_Coord Panel Year Event_QAQC
+## 284  FRSP-288      FRSP         288  260854 4242026     4 2014      FALSE
+##      cycle Loc_Type d10_19.9 d20_29.9 d30_39.9 d40_49.9 d50_59.9 d60_69.9
+## 284 Cycle2       VS      275      200      125        0        0        0
+##     d70_79.9 d80_89.9 d90_99.9 d100p unknown
+## 284        0        0       25     0       0</code></pre>
+</details>
+</br>
+<details>
+<p><summary class="ques2">Question 10: How would you create a wide matrix for FRSP plots in 2019 that has plots for rows, and exotic species as columns?</summary></p>
+<p class="ques">
+Answer has been updated 6/9/2020 based on fixes in forestMIDN.
+</p>
+<pre class="r"><code>frsp_exo &lt;- makeSppList(park = &quot;FRSP&quot;, from = 2019, to = 2019, speciesType = &quot;exotic&quot;) 
+
+# Old school spread version
+frsp_wide_spread &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
+                                 arrange(Latin_Name, Plot_Name) %&gt;% 
+                                 spread(&quot;Latin_Name&quot;, &quot;present&quot;, fill = 0)
+
+# Newer pivot version
+frsp_wide_pivot &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
+                                arrange(Latin_Name, Plot_Name) %&gt;% 
+                                pivot_wider(names_from = &quot;Latin_Name&quot;, 
+                                            values_from = &quot;present&quot;,
+                                            values_fill = 0) 
+
+head(frsp_wide_pivot)</code></pre>
+<pre><code>## # A tibble: 6 x 13
+##   Plot_Name `Ailanthus alti~ `Celastrus orbi~ Euonymus `Euonymus alatu~
+##   &lt;chr&gt;                &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;
+## 1 FRSP-014                 1                0        0                0
+## 2 FRSP-056                 0                1        0                0
+## 3 FRSP-074                 0                1        0                0
+## 4 FRSP-008                 0                0        1                0
+## 5 FRSP-045                 0                0        0                1
+## 6 FRSP-075                 0                0        0                0
+## # ... with 8 more variables: `Lespedeza cuneata` &lt;dbl&gt;, Ligustrum &lt;dbl&gt;,
+## #   `Lonicera japonica` &lt;dbl&gt;, `Microstegium vimineum` &lt;dbl&gt;, `Morus
+## #   alba` &lt;dbl&gt;, `No species recorded` &lt;dbl&gt;, `Persicaria longiseta` &lt;dbl&gt;,
+## #   `Rosa multiflora` &lt;dbl&gt;</code></pre>
+</details>
+</br>
+<h2>
+Day 4
+</h2>
+<details>
+<p><summary class="ques2">Question 11: Take the gett_final graph and make 2 more changes to it.</summary></p>
+<p>You may have chosen other things to do than I did. Here are a couple of changes to the ggplot bar chart</p>
+<pre class="r"><code> ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
+              geom_bar(stat = &#39;identity&#39;, fill = &quot;steelblue4&quot;)+
+              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens), width = 0.2, lwd = 0.7)+
+              labs(x = &quot;Regeneration Size Class&quot;, y = &quot;Stems per sq.m&quot;)+
+              theme_FVM()+
+              theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #hjust is centering horizontally
+              scale_x_discrete(labels = c(&#39;15-30cm&#39;, &#39;30-100cm&#39;, &#39;100-150cm&#39;, &#39;&gt;150cm&#39;, &#39;1-10cm DBH&#39;))</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+Note that width = 0.2 in the geom_errorbar is the width of the caps on the bars. lwd is the weight of the line.
+</details>
+<p></br></p>
+</div>
 <div id="midn-metrics-1-9" class="section level3 tabset">
 <h3>MIDN Metrics 1-9</h3>
 <p>It’s time to put everything you just learned to work! Here I’ve written the code for RICH that compiles the first 4 metrics that each of you will work on with your parks. We’re going to go through each metric line by line to help you understand the process. Then you’ll take this code and run it for your parks.</p>
@@ -1929,201 +2124,6 @@ importCSV(&quot;../data&quot;)</code></pre>
 <p><summary class="drop">10. Regeneration by composition map</summary></p>
 </details>
 </div>
-<div id="answers" class="section level3 tabset">
-<h3>Answers</h3>
-<h2>
-Day 1
-</h2>
-<details>
-<p><summary class="ques2">Question 1: How do you find the value of the 3rd row of domSpp?</summary></p>
-<pre class="r"><code>df[3, c(&quot;domSpp&quot;)]</code></pre>
-<pre><code>## [1] &quot;loblolly_pine&quot;</code></pre>
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 2: How would you make numtrees an integer?</summary></p>
-<pre class="r"><code>df$numtrees &lt;- as.integer(df$numtrees)
-str(df)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    6 obs. of  6 variables:
-##  $ plot         : num  1 2 3 4 5 7
-##  $ numtrees     : int  24 18 17 14 31 27
-##  $ numLive      : num  21 18 16 10 29 26
-##  $ domSpp       : chr  &quot;red_maple&quot; &quot;willow_oak&quot; &quot;loblolly_pine&quot; &quot;sweet_gum&quot; ...
-##  $ invasive_pres: logi  TRUE FALSE FALSE FALSE FALSE TRUE
-##  $ numdead      : num  3 0 1 4 2 1</code></pre>
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 3: How would you calculate the percent of trees that are dead?</summary></p>
-<pre class="r"><code># base R version (2 options)
-df$numdead &lt;- df$numtrees - df$numLive
-df$pctdead &lt;- df$numdead/df$numtrees*100
-
-df$pctdead &lt;- with(df, (numtrees - numLive)/numtrees*100)
-
-# tidyverse version (2 options)
-df &lt;- df %&gt;% mutate(numdead = numtrees - numLive,
-                    pctdead = numdead/numtrees*100)
-
-df &lt;- df %&gt;% mutate(pctdead = (numtrees - numLive)/numtrees*100)</code></pre>
-</details>
-</br>
-<h2>
-Day 2
-</h2>
-<details>
-<p><summary class="ques2">Question 4: How would you select only the plots in VAFO and HOFU from the loc table?</summary></p>
-<pre class="r"><code>loc_VAFO_HOFU &lt;- loc[loc$Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(loc$Unit_ID),]
-
-loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))</code></pre>
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 5: How many plots are in VAFO and HOFU combined (based on loc table)?</summary></p>
-<pre class="r"><code>loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
-length(unique(loc_VAFO_HOFU_tidy$Plot_Number)) # NA was counted as one of the unique values. Oops!</code></pre>
-<pre><code>## [1] 46</code></pre>
-<pre class="r"><code>length(unique(loc_VAFO_HOFU_tidy$Plot_Number[!is.na(loc_VAFO_HOFU_tidy$Plot_Number)])) #Not very readable!</code></pre>
-<pre><code>## [1] 45</code></pre>
-<pre class="r"><code>loc_VAFO_HOFU_tidy_no_nas &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(Plot_Number))
-length(unique(loc_VAFO_HOFU_tidy_no_nas$Plot_Number)) </code></pre>
-<pre><code>## [1] 45</code></pre>
-Note that MIDN plot numbers are unique, so there’s only one plot 1 in the entire loc table.
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 6: How would you calculate the min and max for seed_den_m2?</summary></p>
-<pre class="r"><code>reg_by_park2 &lt;- regdf %&gt;% group_by(Unit_Code) %&gt;% 
-                          summarize(min_seed_dens = min(seed_den_m2),
-                          max_seed_dens = max(seed_den_m2))
-
-reg_by_park2</code></pre>
-<pre><code>## # A tibble: 3 x 3
-##   Unit_Code min_seed_dens max_seed_dens
-##   &lt;chr&gt;             &lt;dbl&gt;         &lt;dbl&gt;
-## 1 HOFU                  0          9.33
-## 2 RICH                  0          3.42
-## 3 VAFO                  0          2.92</code></pre>
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 7: How would you take only QA/QC events and join the loc table to QA/QC events only?</summary></p>
-<pre class="r"><code>eventQAQC &lt;- event %&gt;% filter(Event_QAQC == TRUE)
-locevent_QAQC &lt;- merge(loc, eventQAQC, by=&quot;Location_ID&quot;, all.x = F, all.y = T)</code></pre>
-This is technically a right join, because I’m telling R to take all of the records from the right table (eventQAQC) and only join records in left (loc) table that match. This is just a style preference. I prefer to keep higher level tables to the left of lower level tables (eg tables with 1 to many relationships). The loc (tbl_Locations) table is higher level than the event (tbl_Events) table, because the loc table has the 1 plot record and the event table has the many visits for the plot records. If this is confusing, don’t worry about it. You’ll just notice that it’s the order I generally organize data in my code.
-</details>
-</br>
-<h2>
-Day 3
-</h2>
-<details>
-<p><summary class="ques2">Question 8: How many plots were sampled in APCO in 2018?</summary></p>
-<pre class="r"><code>apco &lt;- joinLocEvent(park = &quot;APCO&quot;, from = 2018, to = 2018)
-length(unique(apco$Plot_Number))</code></pre>
-<pre><code>## [1] 7</code></pre>
-</details>
-<p></br></p>
-<details>
-<p><summary class="ques2">Question 9: Which plot in FRSP has the highest density of live trees in the 90-99.9cm size class for any year?</summary></p>
-<pre class="r"><code>frsp_tree_dist &lt;- sumTreeDBHDist(park = &quot;FRSP&quot;, status = &#39;live&#39;)
-
-frsp_tree_max90 &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9))
-head(frsp_tree_max90) # FRSP-288 </code></pre>
-<pre><code>##                            Location_ID                             Event_ID
-## 1 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 C33BB3EC-724C-401D-BF81-3D4E2DBE9B71
-## 2 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 0D0E5E86-16EB-46F1-A58F-464B8EB0B927
-## 3 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 05E38C88-3661-448A-A180-25C8A32703C8
-## 4 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 3B3F40C0-B1A1-4309-A31D-5C410E640EC3
-## 5 0A13FEF8-0EBA-4DEF-838C-86783C1DEB3E 1750781A-F44B-4069-B106-753F0BB57850
-## 6 93C2789D-59BE-47FB-B051-3E7085E0AD9E AFAAB365-BE32-4A40-B91C-00E0A7148A5D
-##   Plot_Name Unit_Code Plot_Number X_Coord Y_Coord Panel Year Event_QAQC  cycle
-## 1  FRSP-288      FRSP         288  260854 4242026     4 2014      FALSE Cycle2
-## 2  FRSP-288      FRSP         288  260854 4242026     4 2018      FALSE Cycle3
-## 3  FRSP-001      FRSP         001  284595 4237044     1 2007      FALSE Cycle1
-## 4  FRSP-001      FRSP         001  284595 4237044     1 2011      FALSE Cycle2
-## 5  FRSP-001      FRSP         001  284595 4237044     1 2015      FALSE Cycle3
-## 6  FRSP-002      FRSP         002  285600 4237050     1 2007      FALSE Cycle1
-##   Loc_Type d10_19.9 d20_29.9 d30_39.9 d40_49.9 d50_59.9 d60_69.9 d70_79.9
-## 1       VS      275      200      125        0        0        0        0
-## 2       VS      275      175      125        0        0        0        0
-## 3       VS      300      150       75       25       25        0        0
-## 4       VS      325      150       50       25       25        0        0
-## 5       VS      350      150       50       25       25        0        0
-## 6       VS      250       75       75       75       50        0        0
-##   d80_89.9 d90_99.9 d100p unknown
-## 1        0       25     0       0
-## 2        0       25     0       0
-## 3        0        0     0       0
-## 4        0        0     0      25
-## 5        0        0     0       0
-## 6        0        0     0       0</code></pre>
-<pre class="r"><code># If you wanted to pull out the top record for that size class, you can also do one of the two options below
-frsp_top_90 &lt;- frsp_tree_dist[which.max(frsp_tree_dist$d90_99.9),] #The ugly base R approach 
-frsp_top_90_tidy &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9)) %&gt;% slice(1) #The tidyverse approach
-head(frsp_top_90)</code></pre>
-<pre><code>##                              Location_ID                             Event_ID
-## 284 3ECB5300-0887-4EFB-BEE8-7FCC4FD3A3D1 C33BB3EC-724C-401D-BF81-3D4E2DBE9B71
-##     Plot_Name Unit_Code Plot_Number X_Coord Y_Coord Panel Year Event_QAQC
-## 284  FRSP-288      FRSP         288  260854 4242026     4 2014      FALSE
-##      cycle Loc_Type d10_19.9 d20_29.9 d30_39.9 d40_49.9 d50_59.9 d60_69.9
-## 284 Cycle2       VS      275      200      125        0        0        0
-##     d70_79.9 d80_89.9 d90_99.9 d100p unknown
-## 284        0        0       25     0       0</code></pre>
-</details>
-</br>
-<details>
-<p><summary class="ques2">Question 10: How would you create a wide matrix for FRSP plots in 2019 that has plots for rows, and exotic species as columns?</summary></p>
-<p class="ques">
-Answer has been updated 6/9/2020 based on fixes in forestMIDN.
-</p>
-<pre class="r"><code>frsp_exo &lt;- makeSppList(park = &quot;FRSP&quot;, from = 2019, to = 2019, speciesType = &quot;exotic&quot;) 
-
-# Old school spread version
-frsp_wide_spread &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
-                                 arrange(Latin_Name, Plot_Name) %&gt;% 
-                                 spread(&quot;Latin_Name&quot;, &quot;present&quot;, fill = 0)
-
-# Newer pivot version
-frsp_wide_pivot &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
-                                arrange(Latin_Name, Plot_Name) %&gt;% 
-                                pivot_wider(names_from = &quot;Latin_Name&quot;, 
-                                            values_from = &quot;present&quot;,
-                                            values_fill = 0) 
-
-head(frsp_wide_pivot)</code></pre>
-<pre><code>## # A tibble: 6 x 13
-##   Plot_Name `Ailanthus alti~ `Celastrus orbi~ Euonymus `Euonymus alatu~
-##   &lt;chr&gt;                &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;
-## 1 FRSP-014                 1                0        0                0
-## 2 FRSP-056                 0                1        0                0
-## 3 FRSP-074                 0                1        0                0
-## 4 FRSP-008                 0                0        1                0
-## 5 FRSP-045                 0                0        0                1
-## 6 FRSP-075                 0                0        0                0
-## # ... with 8 more variables: `Lespedeza cuneata` &lt;dbl&gt;, Ligustrum &lt;dbl&gt;,
-## #   `Lonicera japonica` &lt;dbl&gt;, `Microstegium vimineum` &lt;dbl&gt;, `Morus
-## #   alba` &lt;dbl&gt;, `No species recorded` &lt;dbl&gt;, `Persicaria longiseta` &lt;dbl&gt;,
-## #   `Rosa multiflora` &lt;dbl&gt;</code></pre>
-</details>
-</br>
-<h2>
-Day 4
-</h2>
-<details>
-<p><summary class="ques2">Question 11: Take the gett_final graph and make 2 more changes to it.</summary></p>
-<p>You may have chosen other things to do than I did. Here are a couple of changes to the ggplot bar chart</p>
-<pre class="r"><code> ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
-              geom_bar(stat = &#39;identity&#39;, fill = &quot;steelblue4&quot;)+
-              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens), width = 0.2, lwd = 0.7)+
-              labs(x = &quot;Regeneration Size Class&quot;, y = &quot;Stems per sq.m&quot;)+
-              theme_FVM()+
-              theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #hjust is centering horizontally
-              scale_x_discrete(labels = c(&#39;15-30cm&#39;, &#39;30-100cm&#39;, &#39;100-150cm&#39;, &#39;&gt;150cm&#39;, &#39;1-10cm DBH&#39;))</code></pre>
-<p><img src="data:image/png;base64,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" width="672" /></p>
-Note that width = 0.2 in the geom_errorbar is the width of the caps on the bars. lwd is the weight of the line.
-</details>
-<p></br></p>
-</div>
 <div id="code-printout" class="section level3 tabset">
 <h3>Code printout</h3>
 <p>This tab prints all of the code chunks in this file in one long file.</p>
@@ -2522,6 +2522,73 @@ gett_final &lt;- ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_den
               theme_FVM()
 
 gett_final
+df[3, c(&quot;domSpp&quot;)]
+df$numtrees &lt;- as.integer(df$numtrees)
+str(df)
+# base R version (2 options)
+df$numdead &lt;- df$numtrees - df$numLive
+df$pctdead &lt;- df$numdead/df$numtrees*100
+
+df$pctdead &lt;- with(df, (numtrees - numLive)/numtrees*100)
+
+# tidyverse version (2 options)
+df &lt;- df %&gt;% mutate(numdead = numtrees - numLive,
+                    pctdead = numdead/numtrees*100)
+
+df &lt;- df %&gt;% mutate(pctdead = (numtrees - numLive)/numtrees*100)
+loc_VAFO_HOFU &lt;- loc[loc$Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(loc$Unit_ID),]
+
+loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
+
+loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
+length(unique(loc_VAFO_HOFU_tidy$Plot_Number)) # NA was counted as one of the unique values. Oops!
+length(unique(loc_VAFO_HOFU_tidy$Plot_Number[!is.na(loc_VAFO_HOFU_tidy$Plot_Number)])) #Not very readable!
+
+loc_VAFO_HOFU_tidy_no_nas &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(Plot_Number))
+length(unique(loc_VAFO_HOFU_tidy_no_nas$Plot_Number)) 
+
+reg_by_park2 &lt;- regdf %&gt;% group_by(Unit_Code) %&gt;% 
+                          summarize(min_seed_dens = min(seed_den_m2),
+                          max_seed_dens = max(seed_den_m2))
+
+reg_by_park2
+eventQAQC &lt;- event %&gt;% filter(Event_QAQC == TRUE)
+locevent_QAQC &lt;- merge(loc, eventQAQC, by=&quot;Location_ID&quot;, all.x = F, all.y = T)
+apco &lt;- joinLocEvent(park = &quot;APCO&quot;, from = 2018, to = 2018)
+length(unique(apco$Plot_Number))
+frsp_tree_dist &lt;- sumTreeDBHDist(park = &quot;FRSP&quot;, status = &#39;live&#39;)
+
+frsp_tree_max90 &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9))
+head(frsp_tree_max90) # FRSP-288 
+
+# If you wanted to pull out the top record for that size class, you can also do one of the two options below
+frsp_top_90 &lt;- frsp_tree_dist[which.max(frsp_tree_dist$d90_99.9),] #The ugly base R approach 
+frsp_top_90_tidy &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9)) %&gt;% slice(1) #The tidyverse approach
+head(frsp_top_90)
+frsp_exo &lt;- makeSppList(park = &quot;FRSP&quot;, from = 2019, to = 2019, speciesType = &quot;exotic&quot;) 
+
+# Old school spread version
+frsp_wide_spread &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
+                                 arrange(Latin_Name, Plot_Name) %&gt;% 
+                                 spread(&quot;Latin_Name&quot;, &quot;present&quot;, fill = 0)
+
+# Newer pivot version
+frsp_wide_pivot &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
+                                arrange(Latin_Name, Plot_Name) %&gt;% 
+                                pivot_wider(names_from = &quot;Latin_Name&quot;, 
+                                            values_from = &quot;present&quot;,
+                                            values_fill = 0) 
+
+head(frsp_wide_pivot)
+
+ ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
+              geom_bar(stat = &#39;identity&#39;, fill = &quot;steelblue4&quot;)+
+              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens), width = 0.2, lwd = 0.7)+
+              labs(x = &quot;Regeneration Size Class&quot;, y = &quot;Stems per sq.m&quot;)+
+              theme_FVM()+
+              theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #hjust is centering horizontally
+              scale_x_discrete(labels = c(&#39;15-30cm&#39;, &#39;30-100cm&#39;, &#39;100-150cm&#39;, &#39;&gt;150cm&#39;, &#39;1-10cm DBH&#39;))
+             
 library(tidyverse)
 library(forestMIDN)
 library(rgdal)
@@ -2838,74 +2905,7 @@ library(tidyverse)
 library(forestMIDN)
 library(rgdal)
 
-importCSV(&quot;../data&quot;)
-
-df[3, c(&quot;domSpp&quot;)]
-df$numtrees &lt;- as.integer(df$numtrees)
-str(df)
-# base R version (2 options)
-df$numdead &lt;- df$numtrees - df$numLive
-df$pctdead &lt;- df$numdead/df$numtrees*100
-
-df$pctdead &lt;- with(df, (numtrees - numLive)/numtrees*100)
-
-# tidyverse version (2 options)
-df &lt;- df %&gt;% mutate(numdead = numtrees - numLive,
-                    pctdead = numdead/numtrees*100)
-
-df &lt;- df %&gt;% mutate(pctdead = (numtrees - numLive)/numtrees*100)
-loc_VAFO_HOFU &lt;- loc[loc$Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(loc$Unit_ID),]
-
-loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
-
-loc_VAFO_HOFU_tidy &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;))
-length(unique(loc_VAFO_HOFU_tidy$Plot_Number)) # NA was counted as one of the unique values. Oops!
-length(unique(loc_VAFO_HOFU_tidy$Plot_Number[!is.na(loc_VAFO_HOFU_tidy$Plot_Number)])) #Not very readable!
-
-loc_VAFO_HOFU_tidy_no_nas &lt;- loc %&gt;% filter(Unit_ID %in% c(&quot;VAFO&quot;, &quot;HOFU&quot;) &amp; !is.na(Plot_Number))
-length(unique(loc_VAFO_HOFU_tidy_no_nas$Plot_Number)) 
-
-reg_by_park2 &lt;- regdf %&gt;% group_by(Unit_Code) %&gt;% 
-                          summarize(min_seed_dens = min(seed_den_m2),
-                          max_seed_dens = max(seed_den_m2))
-
-reg_by_park2
-eventQAQC &lt;- event %&gt;% filter(Event_QAQC == TRUE)
-locevent_QAQC &lt;- merge(loc, eventQAQC, by=&quot;Location_ID&quot;, all.x = F, all.y = T)
-apco &lt;- joinLocEvent(park = &quot;APCO&quot;, from = 2018, to = 2018)
-length(unique(apco$Plot_Number))
-frsp_tree_dist &lt;- sumTreeDBHDist(park = &quot;FRSP&quot;, status = &#39;live&#39;)
-
-frsp_tree_max90 &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9))
-head(frsp_tree_max90) # FRSP-288 
-
-# If you wanted to pull out the top record for that size class, you can also do one of the two options below
-frsp_top_90 &lt;- frsp_tree_dist[which.max(frsp_tree_dist$d90_99.9),] #The ugly base R approach 
-frsp_top_90_tidy &lt;- frsp_tree_dist %&gt;% arrange(desc(d90_99.9)) %&gt;% slice(1) #The tidyverse approach
-head(frsp_top_90)
-frsp_exo &lt;- makeSppList(park = &quot;FRSP&quot;, from = 2019, to = 2019, speciesType = &quot;exotic&quot;) 
-
-# Old school spread version
-frsp_wide_spread &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
-                                 arrange(Latin_Name, Plot_Name) %&gt;% 
-                                 spread(&quot;Latin_Name&quot;, &quot;present&quot;, fill = 0)
-
-# Newer pivot version
-frsp_wide_pivot &lt;- frsp_exo %&gt;% select(Plot_Name, Latin_Name, present) %&gt;% 
-                                arrange(Latin_Name, Plot_Name) %&gt;% 
-                                pivot_wider(names_from = &quot;Latin_Name&quot;, 
-                                            values_from = &quot;present&quot;,
-                                            values_fill = 0) 
-
-head(frsp_wide_pivot)
-
- ggplot(data = gett_stats, aes(x = size_class_fact, y = mean_dens))+
-              geom_bar(stat = &#39;identity&#39;, fill = &quot;steelblue4&quot;)+
-              geom_errorbar(aes(ymin = mean_dens - se_dens, ymax = mean_dens + se_dens), width = 0.2, lwd = 0.7)+
-              labs(x = &quot;Regeneration Size Class&quot;, y = &quot;Stems per sq.m&quot;)+
-              theme_FVM()+
-              theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #hjust is centering horizontally
-              scale_x_discrete(labels = c(&#39;15-30cm&#39;, &#39;30-100cm&#39;, &#39;100-150cm&#39;, &#39;&gt;150cm&#39;, &#39;1-10cm DBH&#39;))</code></pre>
+importCSV(&quot;../data&quot;)</code></pre>
 </div>
 </div>
 
