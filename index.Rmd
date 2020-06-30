@@ -1578,7 +1578,11 @@ importCSV("../data")
 
 ```
 <details open><summary class='drop'>10. Regeneration by composition map</summary>
+For this metric, we're going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we'll include all species, including exotic and low canopy.
+```{r, nc1, echo=T, results = 'hide'}
+RICH_reg_spp <- joinRegenData(park = 'RICH', from = 2016, to = 2019, speciesType = 'all', canopyForm = 'all')
 
+```
 
 
 </details>
