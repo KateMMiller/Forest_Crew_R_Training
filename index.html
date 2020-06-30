@@ -1494,8 +1494,24 @@ gett_final</code></pre>
 Question 11: Take the gett_final graph and make 2 more changes to it. For example, make the line width on the error bars bigger, change the font size of the axis text bigger, tilt the x-axis labels (eg seed15_30) 45 degrees, rename x-axis labels, etc.
 </p>
 </div>
-<div id="summarizing-midn-forest-data-m1-9" class="section level4 tabset">
-<h4>Summarizing MIDN forest data M1-9</h4>
+<div id="assignments-3" class="section level4">
+<h4>Assignments</h4>
+Please complete the assignments below.
+<ul>
+<li>
+View QGIS training videos and read Module 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.
+</li>
+<li>
+Answer the questions for this day and review today’s code. Answers are in the Answers tab.
+</li>
+<li>
+Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
+</li>
+</ul>
+</div>
+</div>
+<div id="midn-metrics-1-9" class="section level3 tabset">
+<h3>MIDN Metrics 1-9</h3>
 <p>It’s time to put everything you just learned to work! Here I’ve written the code for RICH that compiles the first 4 metrics that each of you will work on with your parks. We’re going to go through each metric line by line to help you understand the process. Then you’ll take this code and run it for your parks.</p>
 <p>Before we start, let’s restart our R session to clear our history and global environment by pressing CTRL + SHFT + F10. You essentially just closed and reopened RStudio, without having to do it physically. So, we’ll need to load the packages and import the data again.</p>
 <pre class="r"><code>library(tidyverse)
@@ -1901,21 +1917,18 @@ writeOGR(RICH_stock_shp2, dsn = &quot;./shapefiles&quot;, layer = &quot;RICH_sto
 </details>
 <p></br></p>
 </div>
-<div id="assignments-3" class="section level4">
-<h4>Assignments</h4>
-Please complete the assignments below.
-<ul>
-<li>
-View QGIS training videos and read Moduel 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.
-</li>
-<li>
-Answer the questions for this day and review today’s code. Answers are in the Answers tab.
-</li>
-<li>
-Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a> form by the end of the day
-</li>
-</ul>
-</div>
+<div id="midn-metrics-10-15" class="section level3 tabset">
+<h3>MIDN Metrics 10-15</h3>
+<p>This tab is for net next set of metrics</p>
+<p>Go ahead an load the packages and import the data.</p>
+<pre class="r"><code>library(tidyverse)
+library(forestMIDN)
+library(rgdal)
+
+importCSV(&quot;../data&quot;)</code></pre>
+<details open>
+<p><summary class="drop">1. Regeneration by size class map</summary> The next set of metrics</p>
+</details>
 </div>
 <div id="answers" class="section level3 tabset">
 <h3>Answers</h3>
@@ -2821,6 +2834,12 @@ RICH_stock_shp2 &lt;- RICH_stock_shp %&gt;% group_by(Plot_Name, Plot_Number, X_C
 coordinates(RICH_stock_shp2) &lt;- ~X_Coord + Y_Coord
 proj4string(RICH_stock_shp2) &lt;- CRS(&quot;+init=epsg:26918&quot;)
 writeOGR(RICH_stock_shp2, dsn = &quot;./shapefiles&quot;, layer = &quot;RICH_stock_M9&quot;, driver = &quot;ESRI Shapefile&quot;)
+
+library(tidyverse)
+library(forestMIDN)
+library(rgdal)
+
+importCSV(&quot;../data&quot;)
 
 df[3, c(&quot;domSpp&quot;)]
 df$numtrees &lt;- as.integer(df$numtrees)

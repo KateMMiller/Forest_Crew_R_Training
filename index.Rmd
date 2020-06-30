@@ -1057,7 +1057,15 @@ gett_final
 
 <p class='ques'>Question 11: Take the gett_final graph and make 2 more changes to it. For example, make the line width on the error bars bigger, change the font size of the axis text bigger, tilt the x-axis labels (eg seed15_30) 45 degrees, rename x-axis labels, etc.</p>
 
-#### Summarizing MIDN forest data M1-9{.tabset}
+#### Assignments
+Please complete the assignments below. 
+<ul>
+  <li>View QGIS training videos and read Module 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.</li>
+  <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
+  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
+</ul>
+
+### MIDN Metrics 1-9{.tabset}
 It's time to put everything you just learned to work! Here I've written the code for RICH that compiles the first 4 metrics that each of you will work on with your parks. We're going to go through each metric line by line to help you understand the process. Then you'll take this code and run it for your parks.
 
 Before we start, let's restart our R session to clear our history and global environment by pressing CTRL + SHFT + F10. You essentially just closed and reopened RStudio, without having to do it physically. So, we'll need to load the packages and import the data again.
@@ -1557,13 +1565,24 @@ writeOGR(RICH_stock_shp2, dsn = "./shapefiles", layer = "RICH_stock_M9", driver 
 </br>
 
 
-#### Assignments
-Please complete the assignments below. 
-<ul>
-  <li>View QGIS training videos and read Moduel 2 and 3 of <a href="https://docs.qgis.org/3.10/en/docs/training_manual/">GQIS training manual</a>.</li>
-  <li>Answer the questions for this day and review today's code. Answers are in the Answers tab.</li>
-  <li>Complete the <a href="https://docs.google.com/forms/d/1QoQwsuUvCtHdBxRklC9_IhyfKSYCUe96iooML8e9fzQ/edit">Feedback form</a>  form by the end of the day</li>
-</ul>
+
+
+### MIDN Metrics 10-15{.tabset}
+This tab is for net next set of metrics
+
+Go ahead an load the packages and import the data.
+```{r, c72b,echo=T, results='hide', message=FALSE}
+library(tidyverse)
+library(forestMIDN)
+library(rgdal)
+
+importCSV("../data")
+
+```
+<details open><summary class='drop'>1. Regeneration by size class map</summary>
+The next set of metrics
+
+</details>
 ### Answers{.tabset}
 <h2>Day 1</h2>
 <details><summary class='ques2'>Question 1: How do you find the value of the 3rd row of domSpp?</summary>
