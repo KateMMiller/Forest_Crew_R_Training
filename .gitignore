@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+shapefiles/
+QGIS_projects/
+figures/
+tables/
+rscripts/
+images/
