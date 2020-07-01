@@ -1727,7 +1727,7 @@ sppdf <- as.data.frame(table(RICH_reg_spp$Latin_Name)) %>% arrange(desc(Freq))
 #View(sppdf) #Ilex opaca for the win!
 ```
 
-To make life easier, I'm going to make a column of species codes
+To make life easier, I'm going to make a column of species codes to work with. Otherwise, the spaces between the genus and species require special handling via ``.
 ```{r, nc3, echo=T, results = 'hide'}
 RICH_reg_spp <- RICH_reg_spp %>% 
                 mutate(genus = word(Latin_Name, 1),
@@ -1742,7 +1742,7 @@ RICH_reg_spp$sppcode[RICH_reg_spp$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Querc
 
 ```
 
-The first ifelse statement is filling species column with "spp" if the word function returns NA, which happens when only the genus is recorded. The ifelse function takes 3 arguments. The first argument is something that is either true or false. So, if the code for species returns an NA (eg only genus recorded for Latin Name), return spp, otherwise, return the text after the first space, which is the species. The toupper function makes it all capital.
+The first ifelse() statement is filling species column with "spp" if the word function returns NA, which happens when only the genus is recorded. The ifelse function takes 3 arguments. The first argument is something that is either true or false. So, if the code for species returns an NA (eg only genus recorded for Latin Name), return spp, otherwise, return the text after the first space, which is the species. The toupper function makes it all capital.
 
 The paste0 function pastes the first 3 letters of the genus and the first 3 letters of the species together into one string. If I had just used paste(), the default would be to add a space between the two strings. The paste0 function doesn't add anything. The last bit of code checks whether Acer saccharinum is in the species list, which would have the same code as Acer saccharum. If silver maple is in the dataset, its code will be ACESAC2. I think that's the only possible duplicate code we're going to encounter, but if you find more, let the group know. 
 
@@ -1818,7 +1818,7 @@ RICH_reg_spp2 <- RICH_reg_spp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Co
 
 Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output.
 
-```{r, nc6, echo=T, results = 'hide'}
+```{r, nc6, echo=T, results = 'hide', messages='hide', warning = FALSE}
 RICH_reg_wide <- RICH_reg_spp2 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %>% 
                     arrange(sppgrp) %>% 
@@ -1832,6 +1832,98 @@ writeOGR(RICH_reg_wide, dsn = './shapefiles', layer = 'RICH_reg_spp',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 ```
 </details>
+
+
+<details open><summary class='drop'>11. Tree composition map</summary>
+This metric is going to have a similar approach as metric 10, except we'll be using the joinTreeData() function now. I also need to link the tree and plant table data to get Canopy_Exclusion to make lowcanopy group.
+
+```{r nc7, echo = T, results = 'hide', message = 'hide', warning = FALSE}
+RICH_tree <- joinTreeData(park = "RICH", from = 2016, to = 2019, 
+                          speciesType = 'all', canopyForm = 'all', status = 'live')
+
+RICH_tree2 <- merge(RICH_tree, plants[, c("TSN", "Canopy_Exclusion")], 
+                    by = "TSN", all.x = TRUE, all.y = FALSE)
+
+RICH_tree2 <- RICH_tree2 %>% mutate(genus = word(Latin_Name, 1),
+                                   species = ifelse(is.na(word(Latin_Name, 2)), "spp", 
+                                                    word(Latin_Name, 2)),
+                                   sppcode = toupper(paste0(substr(genus, 1, 3),
+                                                     substr(species, 1, 3))))
+
+RICH_tree2$sppcode[RICH_tree2$species == 'saccharinum'] <- "ACESAC2"
+RICH_tree2$sppcode[RICH_tree2$sppcode == 'QUE(RE'] <- "QUERED" #fixes Quercus (red group)
+RICH_tree2$sppcode[RICH_tree2$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Quercus (white group)
+
+# Next, make groups (copied make_spp_vector function from previous section, in case it's not in your global env.)
+make_spp_vector <- function(df){
+      vec <- df %>% select(sppcode) %>% unique()
+      vec2 <- as.character(dput(vec$sppcode))
+      }
+
+lowcan_tr <- RICH_tree2 %>% 
+                filter(Canopy_Exclusion == TRUE & Latin_Name != "No species recorded") %>% 
+                make_spp_vector()
+
+exotic_tr <- RICH_tree2 %>% filter(Exotic == TRUE) %>% make_spp_vector()
+exotic_tr # No exotic live tree species in RICH!
+
+carya_tr <- RICH_tree2 %>% filter(genus == "Carya") %>% make_spp_vector()
+
+frax_tr <-  RICH_tree2 %>% filter(genus == "Fraxinus") %>% make_spp_vector()
+               
+pinus_tr <- RICH_tree2 %>% filter(genus == "Pinus") %>% make_spp_vector()
+
+querc_tr <- RICH_tree2 %>% filter(genus == "Quercus") %>% make_spp_vector()
+
+ulmus_tr <- RICH_tree2 %>% filter(genus == "Ulmus") %>% make_spp_vector()
+
+grped_tr <- c(lowcan_tr, carya_tr, frax_tr, pinus_tr, querc_tr, ulmus_tr)
+
+totnum_plots <- length(unique(RICH_reg_spp$Plot_Name))
+
+other_nat_tr <- RICH_tree2 %>% group_by(sppcode) %>% 
+                               mutate(numplots = sum(!is.na(Latin_Name))/totnum_plots*100) %>% 
+                               ungroup() %>% 
+                               filter(!sppcode %in% grped_tr & Exotic == FALSE) %>%
+                               filter(numplots <= 30) %>% #combining spp. in <30% of plots
+                               make_spp_vector()
+
+# Creating the sppgrp variable
+RICH_tree2 <- RICH_tree2 %>% mutate(sppgrp = case_when(sppcode %in% lowcan_tr ~ paste0("LOWCAN"),
+                                                       sppcode %in% exotic_tr ~ paste0("EXOSPP"),
+                                                       sppcode %in% carya_tr ~ paste0("CARSPP"),
+                                                       sppcode %in% frax_tr ~ paste0("FRASPP"),
+                                                       sppcode %in% pinus_tr ~ paste0("PINSPP"),
+                                                       sppcode %in% querc_tr ~ paste0("QUESPP"),
+                                                       sppcode %in% ulmus_tr ~ paste0("ULMSPP"),
+                                                       sppcode %in% other_nat_tr ~ paste0("OTHNAT"),
+                                                       TRUE ~ paste0(sppcode)
+                                                        ))
+table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, and possibly using Excel to get your groupings down to 12 or fewer.
+
+# Now to combine rows of species in the same species group
+RICH_tree3 <- RICH_tree2 %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
+                                      summarize(BA_m2ha = sum(BA_cm2, na.rm = TRUE)/400)
+
+# Make the dataset wide, so there's a row for each plot and a column for each species group
+RICH_tree_wide <- RICH_tree3 %>% 
+                    select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, BA_m2ha) %>% 
+                    arrange(sppgrp) %>% 
+                    pivot_wider(names_from = "sppgrp", 
+                                values_from = "BA_m2ha", 
+                                values_fill = 0) #%>% select(-NOSPE)
+
+head(RICH_tree_wide)
+
+# Now save output to shapefile
+coordinates(RICH_tree_wide) <- ~X_Coord + Y_Coord
+proj4string(RICH_tree_wide) <- CRS("+init=epsg:26918")
+writeOGR(RICH_tree_wide, dsn = './shapefiles', layer = 'RICH_tree_spp', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
+
+```
+</details>
+
 
 ### Code printout {.tabset}
 This tab prints all of the code chunks in this file in one long file.
