@@ -2,8 +2,8 @@
 output: 
   html_document:
     css: custom_styles.css
+title: "Forest Crew R training"
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -1705,30 +1705,31 @@ writeOGR(RICH_stock_shp2, dsn = "./shapefiles", layer = "RICH_stock_M9", driver 
 
 
 ### MIDN Metrics 10-15{.tabset}
-This tab covers the next 5 metrics related to composition and invasive species. Go ahead and load the packages and import the data.
-```{r, c72b,echo=T, results='hide', message=FALSE}
+This tab covers the next 5 metrics related to composition and invasive species. Go ahead and load the packages and import the data. I updated the joinQuadData() function on 7/2/20, so please reinstall the forestMIDN package to make sure you get the same results I do.
+```{r, m10_1,echo=T, results='hide', message=FALSE, eval=FALSE}
 library(tidyverse)
+devtools::install_github("katemmiller/forestMIDN")
 library(forestMIDN)
 library(rgdal)
 
 importCSV("../data")
 
 ```
-<details open><summary class='drop'>10. Regeneration by composition map</summary>
+<details open><summary class='drop'>10. Regeneration by composition</summary>
 For this metric, we're going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we'll include all species, including exotic and low canopy. We need to limit the pie charts to 12 or less, because we start to run out of distinct colors and it's harder to distinguish patterns. 
-```{r, nc1, echo=T, results = 'hide'}
+```{r, m10_2, echo=T, results = 'hide'}
 RICH_reg_spp <- joinRegenData(park = 'RICH', from = 2016, to = 2019, 
                               speciesType = 'all', canopyForm = 'all')
 ```
 
 The chunk below is to figure out which species are the most common, and which ones to lump.
-```{r, nc2, echo=T, results = 'hide'}
+```{r, m10_3, echo=T, results = 'hide'}
 sppdf <- as.data.frame(table(RICH_reg_spp$Latin_Name)) %>% arrange(desc(Freq))
 #View(sppdf) #Ilex opaca for the win!
 ```
 
 To make life easier, I'm going to make a column of species codes to work with. Otherwise, the spaces between the genus and species require special handling via ``.
-```{r, nc3, echo=T, results = 'hide'}
+```{r, m10_4, echo=T, results = 'hide'}
 RICH_reg_spp <- RICH_reg_spp %>% 
                 mutate(genus = word(Latin_Name, 1),
                        species = ifelse(is.na(word(Latin_Name, 2)), "spp", 
@@ -1756,10 +1757,9 @@ To make these species groups, I'm going to make vectors out of the sppcode colum
 
 For every park, you'll want to try the groupings on your own first, then run them by Camilla and Kate, like you did for the vegetation groupings in the maps.
 
-```{r, nc4, echo=T, results = 'hide'}
+```{r,m10_5, echo=T, results = 'hide'}
 make_spp_vector <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
-      vec2 <- as.character(dput(vec$sppcode))
       }
 
 lowcan_spp <- RICH_reg_spp %>% 
@@ -1784,31 +1784,37 @@ ulmus_spp <- RICH_reg_spp %>% filter(genus == "Ulmus") %>% make_spp_vector()
 ```
 Next I want to take native species that aren't very common and put them in an other native group. The group_by and numplots is calculating the number of plots a species occurs on, so I can take species that occur in <10% of plots and group them into other native, while leaving more abundant species in their own group. Every park is going to be a little different. 
 
-```{r, nc5, echo=T, results = 'hide'}
-grped_spp <- c(lowcan_spp, carya_spp, frax_spp, pinus_spp, querc_spp, ulmus_spp)
+```{r, m10_6, echo=T, results = 'hide'}
+grped_spp <- rbind(lowcan_spp, carya_spp, frax_spp, pinus_spp, querc_spp, ulmus_spp)
 
 totnum_plots <- length(unique(RICH_reg_spp$Plot_Name))
 
 other_nat <- RICH_reg_spp %>% group_by(sppcode) %>% 
                               mutate(numplots = sum(!is.na(Latin_Name))/totnum_plots*100) %>% 
                               ungroup() %>% 
-                              filter(!sppcode %in% grped_spp & Exotic == FALSE) %>%
+                              filter(!(sppcode %in% grped_spp$sppcode)) %>% 
+                              filter(Exotic == FALSE) %>% 
                               filter(numplots <= 30) %>% #combining spp. in <30% of plots
                               make_spp_vector()
 
+# I split the filters up to make sure it worked properly, and because they were pulling from
+# different tables. 
 
-RICH_reg_spp <- RICH_reg_spp %>% mutate(sppgrp = case_when(sppcode %in% lowcan_spp ~ paste0("LOWCAN"),
-                                                           sppcode %in% exotic_spp ~ paste0("EXOSPP"),
-                                                           sppcode %in% carya_spp ~ paste0("CARSPP"),
-                                                           sppcode %in% frax_spp ~ paste0("FRASPP"),
-                                                           sppcode %in% pinus_spp ~ paste0("PINSPP"),
-                                                           sppcode %in% querc_spp ~ paste0("QUESPP"),
-                                                           sppcode %in% ulmus_spp ~ paste0("ULMSPP"),
-                                                           sppcode %in% other_nat ~ paste0("OTHNAT"),
-                                                           TRUE ~ paste0(sppcode)
+RICH_reg_spp <- RICH_reg_spp %>% mutate(sppgrp = case_when(sppcode %in% lowcan_spp$sppcode ~ paste0("LOWCAN"),
+                                                           sppcode %in% exotic_spp$sppcode ~ paste0("EXOSPP"),
+                                                           sppcode %in% carya_spp$sppcode ~ paste0("CARSPP"),
+                                                           sppcode %in% frax_spp$sppcode ~ paste0("FRASPP"),
+                                                           sppcode %in% pinus_spp$sppcode ~ paste0("PINSPP"),
+                                                           sppcode %in% querc_spp$sppcode ~ paste0("QUESPP"),
+                                                           sppcode %in% ulmus_spp$sppcode ~ paste0("ULMSPP"),
+                                                           sppcode %in% other_nat$sppcode ~ paste0("OTHNAT"),
+                                                           TRUE ~ paste0(sppcode) 
                                                            ),
                                         reg_den = seed.den + sap.den
                                         )
+# The TRUE ~ paste0(sppcode) essentially says for any species that doesn't fit in one of the groups above,
+# assign the sppcode as its group (eg ACERUB in RICH)
+
 table(RICH_reg_spp$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, and possibly using Excel to get your groupings down to 12 or fewer.
 
 # Now to combine rows of species in the same species group
@@ -1818,7 +1824,7 @@ RICH_reg_spp2 <- RICH_reg_spp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Co
 
 Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output.
 
-```{r, nc6, echo=T, results = 'hide', messages='hide', warning = FALSE}
+```{r, m10_7, echo=T, results = 'hide', messages='hide', warning = FALSE}
 RICH_reg_wide <- RICH_reg_spp2 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %>% 
                     arrange(sppgrp) %>% 
@@ -1833,11 +1839,10 @@ writeOGR(RICH_reg_wide, dsn = './shapefiles', layer = 'RICH_reg_spp',
 ```
 </details>
 
-
-<details open><summary class='drop'>11. Tree composition map</summary>
+<details open><summary class='drop'>11. Tree composition</summary>
 This metric is going to have a similar approach as metric 10, except we'll be using the joinTreeData() function now. I also need to link the tree and plant table data to get Canopy_Exclusion to make lowcanopy group.
 
-```{r nc7, echo = T, results = 'hide', message = 'hide', warning = FALSE}
+```{r m11_1, echo = T, results = 'hide', message = 'hide', warning = FALSE}
 RICH_tree <- joinTreeData(park = "RICH", from = 2016, to = 2019, 
                           speciesType = 'all', canopyForm = 'all', status = 'live')
 
@@ -1857,7 +1862,6 @@ RICH_tree2$sppcode[RICH_tree2$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Quercus (
 # Next, make groups (copied make_spp_vector function from previous section, in case it's not in your global env.)
 make_spp_vector <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
-      vec2 <- as.character(dput(vec$sppcode))
       }
 
 lowcan_tr <- RICH_tree2 %>% 
@@ -1877,26 +1881,28 @@ querc_tr <- RICH_tree2 %>% filter(genus == "Quercus") %>% make_spp_vector()
 
 ulmus_tr <- RICH_tree2 %>% filter(genus == "Ulmus") %>% make_spp_vector()
 
-grped_tr <- c(lowcan_tr, carya_tr, frax_tr, pinus_tr, querc_tr, ulmus_tr)
+grped_tr <- rbind(lowcan_tr, carya_tr, frax_tr, pinus_tr, querc_tr, ulmus_tr)
 
-totnum_plots <- length(unique(RICH_reg_spp$Plot_Name))
+totnum_plots <- length(unique(RICH_tree2$Plot_Name)) # to calc. % of plot occurrences
 
 other_nat_tr <- RICH_tree2 %>% group_by(sppcode) %>% 
                                mutate(numplots = sum(!is.na(Latin_Name))/totnum_plots*100) %>% 
                                ungroup() %>% 
-                               filter(!sppcode %in% grped_tr & Exotic == FALSE) %>%
+                               filter(!(sppcode %in% grped_tr$sppcode)) %>% 
+                               filter(Exotic == FALSE) %>%
                                filter(numplots <= 30) %>% #combining spp. in <30% of plots
                                make_spp_vector()
+other_nat_tr
 
 # Creating the sppgrp variable
-RICH_tree2 <- RICH_tree2 %>% mutate(sppgrp = case_when(sppcode %in% lowcan_tr ~ paste0("LOWCAN"),
-                                                       sppcode %in% exotic_tr ~ paste0("EXOSPP"),
-                                                       sppcode %in% carya_tr ~ paste0("CARSPP"),
-                                                       sppcode %in% frax_tr ~ paste0("FRASPP"),
-                                                       sppcode %in% pinus_tr ~ paste0("PINSPP"),
-                                                       sppcode %in% querc_tr ~ paste0("QUESPP"),
-                                                       sppcode %in% ulmus_tr ~ paste0("ULMSPP"),
-                                                       sppcode %in% other_nat_tr ~ paste0("OTHNAT"),
+RICH_tree2 <- RICH_tree2 %>% mutate(sppgrp = case_when(sppcode %in% lowcan_tr$sppcode ~ paste0("LOWCAN"),
+                                                       sppcode %in% exotic_tr$sppcode ~ paste0("EXOSPP"),
+                                                       sppcode %in% carya_tr$sppcode ~ paste0("CARSPP"),
+                                                       sppcode %in% frax_tr$sppcode ~ paste0("FRASPP"),
+                                                       sppcode %in% pinus_tr$sppcode ~ paste0("PINSPP"),
+                                                       sppcode %in% querc_tr$sppcode ~ paste0("QUESPP"),
+                                                       sppcode %in% ulmus_tr$sppcode ~ paste0("ULMSPP"),
+                                                       sppcode %in% other_nat_tr$sppcode ~ paste0("OTHNAT"),
                                                        TRUE ~ paste0(sppcode)
                                                         ))
 table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, and possibly using Excel to get your groupings down to 12 or fewer.
@@ -1924,7 +1930,66 @@ writeOGR(RICH_tree_wide, dsn = './shapefiles', layer = 'RICH_tree_spp',
 ```
 </details>
 
+<details open><summary class='drop'>12. Invasive cover by cycle</summary>
+This metric is more straightforward than the previous two. The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. We also only want to include species that are invasive and exotic (e.g. bittersweet), not just exotic (e.g. Malus spp./apples) 
 
+Fortunately, we already figured this out for our regional invasive trend analysis, so I'll load that list, named Invasive_List.csv, and use it to only include invasive species in the analysis. I copied that list to the google drive, so please download it and put it in your data folder. In this dataset, species with a 1 in the MIDN column should be included in our analysis. Species with 0 will not be included in this metric, but will be included in metrics that only consider the last 4 years.
+```{r m12_2, echo=T, results = 'hide'}
+inv_list <- read.csv("../data/Invasive_List.csv")
+MIDN_inv <- inv_list %>% filter(MIDN == 1) 
+#Now making an invasive only list to filter against
+MIDN_inv_list <- MIDN_inv %>% filter(MIDN == 1) %>% select(Latin_Name)
+MIDN_inv_list
+```
+
+Now time to pull in quadrat data for RICH. First we pull in the quadrat data for exotic species and filter out species that aren't on the MIDN_inv_list. Then we sum up the cover of each invasives at the plot level. We'll have to merge this dataset in with a table that includes all plots and visits for RICH, since plots without invasives will get dropped when we filter out species not on the invasive list. After merging, we'll pivot the data so we have a column for every park and a field for every cycle with invasive cover as the values.
+```{r m12_3, echo=T, results = 'hide'}
+RICH_exo_spp <- joinQuadData(park = "RICH", from = 2007, to = 2019, speciesType = 'exotic')
+length(unique(RICH_exo_spp$Plot_Name)) #making sure it's still 32
+
+RICH_inv_spp <- RICH_exo_spp %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name)
+length(unique(RICH_inv_spp$Plot_Name)) # Now it's 24, meaning that plots without invasives were removed. 
+# We'll add those back in with a left_join near the end.
+head(RICH_inv_spp)
+
+RICH_inv_spp2 <- RICH_inv_spp %>% group_by(Event_ID, Plot_Name, cycle) %>% 
+                                  summarize(avg.cover = sum(avg.cover, na.rm = TRUE))
+
+head(RICH_inv_spp2)
+
+RICH_plot_ev <- joinLocEvent(park = "RICH", from = 2007, to = 2019) # left data set to merge to
+length(unique(RICH_plot_ev$Plot_Name))
+
+RICH_inv_merge <- merge(RICH_plot_ev[ , c("Event_ID", "Plot_Name", "Plot_Number", "cycle", "X_Coord", "Y_Coord")],
+                        RICH_inv_spp2, by = c("Event_ID", "Plot_Name", "cycle"), all.x = TRUE, all.y = TRUE)
+
+table(RICH_inv_merge$Plot_Name, RICH_inv_merge$cycle) # Every plot has a 1 for first 3 cycles, and only
+# panel 4 has first panel of plots, so that looks good.
+
+# Now to change NA to 0 for plots that don't have any invasives for a given visit
+table(complete.cases(RICH_inv_merge$avg.cover)) # a bunch of NAs in the data
+RICH_inv_merge$avg.cover[is.na(RICH_inv_merge$avg.cover)] <- 0
+table(complete.cases(RICH_inv_merge$avg.cover)) # no there aren't any NAs
+```
+
+Now time to pivot the table wide by cycle, and then save to shapefile
+```{r m12_4, echo=T, results = 'hide', warning = FALSE}
+
+RICH_inv_wide <- RICH_inv_merge %>% select(Plot_Name, cycle, Plot_Number, X_Coord, Y_Coord, avg.cover) %>% 
+                                    arrange(Plot_Name, cycle) %>% 
+                                    pivot_wider(names_from = cycle, values_from = avg.cover) 
+# We won't values fill this, because there are plots in cycle 4 that haven't been sampled. We want those to be NA.
+
+# Now to save output as shapefile
+coordinates(RICH_inv_wide) <- ~X_Coord + Y_Coord
+proj4string(RICH_inv_wide) <- CRS("+init=epsg:26918")
+writeOGR(RICH_inv_wide, dsn = './shapefiles', layer = 'RICH_inv_cycle', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
+
+```
+
+
+</details>
 ### Code printout {.tabset}
 This tab prints all of the code chunks in this file in one long file.
 ```{r show-code, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
