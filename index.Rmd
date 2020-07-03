@@ -1728,18 +1728,23 @@ sppdf <- as.data.frame(table(RICH_reg_spp$Latin_Name)) %>% arrange(desc(Freq))
 #View(sppdf) #Ilex opaca for the win!
 ```
 
-To make life easier, I'm going to make a column of species codes to work with. Otherwise, the spaces between the genus and species require special handling via ``.
+To make life easier, I'm going to make a column of species codes to work with. Otherwise, the spaces between the genus and species require special handling via ``. I also see myself wanting this for several of the metrics, so I'm going to make a function that creates the species codes.
 ```{r, m10_4, echo=T, results = 'hide'}
-RICH_reg_spp <- RICH_reg_spp %>% 
-                mutate(genus = word(Latin_Name, 1),
-                       species = ifelse(is.na(word(Latin_Name, 2)), "spp", 
-                                        word(Latin_Name, 2)),
-                       sppcode = toupper(paste0(substr(genus, 1, 3),
-                                                substr(species, 1, 3))))
 
-RICH_reg_spp$sppcode[RICH_reg_spp$species == 'saccharinum'] <- "ACESAC2"
-RICH_reg_spp$sppcode[RICH_reg_spp$sppcode == 'QUE(RE'] <- "QUERED" #fixes Quercus (red group)
-RICH_reg_spp$sppcode[RICH_reg_spp$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Quercus (white group)
+make_sppcode <- function(df){
+  df2 <- df %>% mutate(genus = word(Latin_Name, 1),
+                      species = ifelse(is.na(word(Latin_Name, 2)), "spp",
+                                       word(Latin_Name,2)),
+                      sppcode = toupper(paste0(substr(genus, 1, 3),
+                                               substr(species, 1, 3))))
+  
+  df2$sppcode[df2$species == 'saccharinum'] <- "ACESAC2" # keeps silver and sugar maple from having duplicate codes
+  df2$sppcode[df2$sppcode == 'QUE(RE'] <- "QUERED" # fixes Quercus (red group)
+  df2$sppcode[df2$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Quercus (white group)
+  return(df2)
+}
+
+RICH_reg_spp <- make_sppcode(RICH_reg_spp) 
 
 ```
 
@@ -1753,33 +1758,33 @@ If you have more than one Acer, you can lump them too (make sure you only lump n
 
 Exotic species can be lumped, unless you have a lot of one species, like Ailanthus altissima, and only a few other exotics. In that case, I'd leave Ailanthus on its own. Malus (apple/crabapple) are exotic but not super invasive, so I'd combine that with other exotics. Fagus grandifolia is often a good one to leave on its own. Low canopy species are another group that most or all parks will have. Those can be identified by the Canopy_Exclusion field.
 
-To make these species groups, I'm going to make vectors out of the sppcode column, then use mutate and case_when to make the sppgrp column. Instead of copying the same 3 functions over and over, I made a make_spp_vector function to speed things up. 
+To make these species groups, I'm going to make vectors out of the sppcode column, then use mutate and case_when to make the sppgrp column. Instead of copying the same 3 functions over and over, I made a make_spp_list function to speed things up. 
 
 For every park, you'll want to try the groupings on your own first, then run them by Camilla and Kate, like you did for the vegetation groupings in the maps.
 
 ```{r,m10_5, echo=T, results = 'hide'}
-make_spp_vector <- function(df){
+make_spp_list <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
       }
 
 lowcan_spp <- RICH_reg_spp %>% 
                 filter(Canopy_Exclusion == TRUE & Latin_Name != "No species recorded") %>% 
-                make_spp_vector()
+                make_spp_list()
 
 
-exotic_spp <- RICH_reg_spp %>% filter(Exotic == TRUE) %>% make_spp_vector()
+exotic_spp <- RICH_reg_spp %>% filter(Exotic == TRUE) %>% make_spp_list()
               
 exotic_spp # No exotic tree species in RICH regen! I won't include this in sppgroup then.
 
-carya_spp <- RICH_reg_spp %>% filter(genus == "Carya") %>% make_spp_vector()
+carya_spp <- RICH_reg_spp %>% filter(genus == "Carya") %>% make_spp_list()
 
-frax_spp <-  RICH_reg_spp %>% filter(genus == "Fraxinus") %>% make_spp_vector()
+frax_spp <-  RICH_reg_spp %>% filter(genus == "Fraxinus") %>% make_spp_list()
                
-pinus_spp <- RICH_reg_spp %>% filter(genus == "Pinus") %>% make_spp_vector()
+pinus_spp <- RICH_reg_spp %>% filter(genus == "Pinus") %>% make_spp_list()
 
-querc_spp <- RICH_reg_spp %>% filter(genus == "Quercus") %>% make_spp_vector()
+querc_spp <- RICH_reg_spp %>% filter(genus == "Quercus") %>% make_spp_list()
 
-ulmus_spp <- RICH_reg_spp %>% filter(genus == "Ulmus") %>% make_spp_vector()
+ulmus_spp <- RICH_reg_spp %>% filter(genus == "Ulmus") %>% make_spp_list()
 
 ```
 Next I want to take native species that aren't very common and put them in an other native group. The group_by and numplots is calculating the number of plots a species occurs on, so I can take species that occur in <10% of plots and group them into other native, while leaving more abundant species in their own group. Every park is going to be a little different. 
@@ -1795,7 +1800,7 @@ other_nat <- RICH_reg_spp %>% group_by(sppcode) %>%
                               filter(!(sppcode %in% grped_spp$sppcode)) %>% 
                               filter(Exotic == FALSE) %>% 
                               filter(numplots <= 30) %>% #combining spp. in <30% of plots
-                              make_spp_vector()
+                              make_spp_list()
 
 # I split the filters up to make sure it worked properly, and because they were pulling from
 # different tables. 
@@ -1815,7 +1820,8 @@ RICH_reg_spp <- RICH_reg_spp %>% mutate(sppgrp = case_when(sppcode %in% lowcan_s
 # The TRUE ~ paste0(sppcode) essentially says for any species that doesn't fit in one of the groups above,
 # assign the sppcode as its group (eg ACERUB in RICH)
 
-table(RICH_reg_spp$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, and possibly using Excel to get your groupings down to 12 or fewer.
+table(RICH_reg_spp$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, 
+#and possibly using Excel to get your groupings down to 12 or fewer.
 
 # Now to combine rows of species in the same species group
 RICH_reg_spp2 <- RICH_reg_spp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
@@ -1839,6 +1845,7 @@ writeOGR(RICH_reg_wide, dsn = './shapefiles', layer = 'RICH_reg_spp',
 ```
 </details>
 
+
 <details open><summary class='drop'>11. Tree composition</summary>
 This metric is going to have a similar approach as metric 10, except we'll be using the joinTreeData() function now. I also need to link the tree and plant table data to get Canopy_Exclusion to make lowcanopy group.
 
@@ -1849,37 +1856,29 @@ RICH_tree <- joinTreeData(park = "RICH", from = 2016, to = 2019,
 RICH_tree2 <- merge(RICH_tree, plants[, c("TSN", "Canopy_Exclusion")], 
                     by = "TSN", all.x = TRUE, all.y = FALSE)
 
-RICH_tree2 <- RICH_tree2 %>% mutate(genus = word(Latin_Name, 1),
-                                   species = ifelse(is.na(word(Latin_Name, 2)), "spp", 
-                                                    word(Latin_Name, 2)),
-                                   sppcode = toupper(paste0(substr(genus, 1, 3),
-                                                     substr(species, 1, 3))))
+RICH_tree2 <- make_sppcode(RICH_tree2) # add species code to dataset
 
-RICH_tree2$sppcode[RICH_tree2$species == 'saccharinum'] <- "ACESAC2"
-RICH_tree2$sppcode[RICH_tree2$sppcode == 'QUE(RE'] <- "QUERED" #fixes Quercus (red group)
-RICH_tree2$sppcode[RICH_tree2$sppcode == 'QUE(WH'] <- "QUEWHI" # fixes Quercus (white group)
-
-# Next, make groups (copied make_spp_vector function from previous section, in case it's not in your global env.)
-make_spp_vector <- function(df){
+# Next, make groups (copied make_spp_list function from previous section, in case it's not in your global env.)
+make_spp_list <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
       }
 
 lowcan_tr <- RICH_tree2 %>% 
                 filter(Canopy_Exclusion == TRUE & Latin_Name != "No species recorded") %>% 
-                make_spp_vector()
+                make_spp_list()
 
-exotic_tr <- RICH_tree2 %>% filter(Exotic == TRUE) %>% make_spp_vector()
+exotic_tr <- RICH_tree2 %>% filter(Exotic == TRUE) %>% make_spp_list()
 exotic_tr # No exotic live tree species in RICH!
 
-carya_tr <- RICH_tree2 %>% filter(genus == "Carya") %>% make_spp_vector()
+carya_tr <- RICH_tree2 %>% filter(genus == "Carya") %>% make_spp_list()
 
-frax_tr <-  RICH_tree2 %>% filter(genus == "Fraxinus") %>% make_spp_vector()
+frax_tr <-  RICH_tree2 %>% filter(genus == "Fraxinus") %>% make_spp_list()
                
-pinus_tr <- RICH_tree2 %>% filter(genus == "Pinus") %>% make_spp_vector()
+pinus_tr <- RICH_tree2 %>% filter(genus == "Pinus") %>% make_spp_list()
 
-querc_tr <- RICH_tree2 %>% filter(genus == "Quercus") %>% make_spp_vector()
+querc_tr <- RICH_tree2 %>% filter(genus == "Quercus") %>% make_spp_list()
 
-ulmus_tr <- RICH_tree2 %>% filter(genus == "Ulmus") %>% make_spp_vector()
+ulmus_tr <- RICH_tree2 %>% filter(genus == "Ulmus") %>% make_spp_list()
 
 grped_tr <- rbind(lowcan_tr, carya_tr, frax_tr, pinus_tr, querc_tr, ulmus_tr)
 
@@ -1891,7 +1890,7 @@ other_nat_tr <- RICH_tree2 %>% group_by(sppcode) %>%
                                filter(!(sppcode %in% grped_tr$sppcode)) %>% 
                                filter(Exotic == FALSE) %>%
                                filter(numplots <= 30) %>% #combining spp. in <30% of plots
-                               make_spp_vector()
+                               make_spp_list()
 other_nat_tr
 
 # Creating the sppgrp variable
@@ -1905,7 +1904,8 @@ RICH_tree2 <- RICH_tree2 %>% mutate(sppgrp = case_when(sppcode %in% lowcan_tr$sp
                                                        sppcode %in% other_nat_tr$sppcode ~ paste0("OTHNAT"),
                                                        TRUE ~ paste0(sppcode)
                                                         ))
-table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, and possibly using Excel to get your groupings down to 12 or fewer.
+table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, 
+# and possibly using Excel to get your groupings down to 12 or fewer.
 
 # Now to combine rows of species in the same species group
 RICH_tree3 <- RICH_tree2 %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
@@ -1930,16 +1930,17 @@ writeOGR(RICH_tree_wide, dsn = './shapefiles', layer = 'RICH_tree_spp',
 ```
 </details>
 
+
 <details open><summary class='drop'>12. Invasive cover by cycle</summary>
-This metric is more straightforward than the previous two. The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. We also only want to include species that are invasive and exotic (e.g. bittersweet), not just exotic (e.g. Malus spp./apples) 
+This metric is more straightforward than the previous two. The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. 
 
 Fortunately, we already figured this out for our regional invasive trend analysis, so I'll load that list, named Invasive_List.csv, and use it to only include invasive species in the analysis. I copied that list to the google drive, so please download it and put it in your data folder. In this dataset, species with a 1 in the MIDN column should be included in our analysis. Species with 0 will not be included in this metric, but will be included in metrics that only consider the last 4 years.
 ```{r m12_2, echo=T, results = 'hide'}
 inv_list <- read.csv("../data/Invasive_List.csv")
-MIDN_inv <- inv_list %>% filter(MIDN == 1) 
+head(inv_list)
+MIDN_inv_list <- inv_list %>% filter(MIDN_INV == 1 & Year_added ==2007) %>% select(Latin_Name) 
+#View(MIDN_inv_list)
 #Now making an invasive only list to filter against
-MIDN_inv_list <- MIDN_inv %>% filter(MIDN == 1) %>% select(Latin_Name)
-MIDN_inv_list
 ```
 
 Now time to pull in quadrat data for RICH. First we pull in the quadrat data for exotic species and filter out species that aren't on the MIDN_inv_list. Then we sum up the cover of each invasives at the plot level. We'll have to merge this dataset in with a table that includes all plots and visits for RICH, since plots without invasives will get dropped when we filter out species not on the invasive list. After merging, we'll pivot the data so we have a column for every park and a field for every cycle with invasive cover as the values.
@@ -1948,8 +1949,8 @@ RICH_exo_spp <- joinQuadData(park = "RICH", from = 2007, to = 2019, speciesType 
 length(unique(RICH_exo_spp$Plot_Name)) #making sure it's still 32
 
 RICH_inv_spp <- RICH_exo_spp %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name)
-length(unique(RICH_inv_spp$Plot_Name)) # Now it's 24, meaning that plots without invasives were removed. 
-# We'll add those back in with a left_join near the end.
+length(unique(RICH_inv_spp$Plot_Name)) # Now it's 24, meaning that plots without species on the MIDN_inv_list
+# were removed. We'll add those back in with a left_join near the end.
 head(RICH_inv_spp)
 
 RICH_inv_spp2 <- RICH_inv_spp %>% group_by(Event_ID, Plot_Name, cycle) %>% 
@@ -1972,7 +1973,7 @@ RICH_inv_merge$avg.cover[is.na(RICH_inv_merge$avg.cover)] <- 0
 table(complete.cases(RICH_inv_merge$avg.cover)) # no there aren't any NAs
 ```
 
-Now time to pivot the table wide by cycle, and then save to shapefile
+Now time to pivot the table wide by cycle, and then save to shapefile.
 ```{r m12_4, echo=T, results = 'hide', warning = FALSE}
 
 RICH_inv_wide <- RICH_inv_merge %>% select(Plot_Name, cycle, Plot_Number, X_Coord, Y_Coord, avg.cover) %>% 
@@ -1987,9 +1988,108 @@ writeOGR(RICH_inv_wide, dsn = './shapefiles', layer = 'RICH_inv_cycle',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 
 ```
-
-
 </details>
+
+<details open><summary class='drop'>13. Invasive cover table</summary>
+The shapefile we generated in metric 12 has the same information that we'll provide in this metric, but as a table. To save time, I'll just take the data from the shapefile and save it as a csv. When you create spatial dataframes in R, the data (eg think if this as the attribute table in GIS) can be accessed via the data slot, which you use \@data to access. If you're starting from scratch, just run the code for metric 12 up until you create RICH_inv_wide. Before converting to shapefile, save the data frame as a csv.  
+```{r m13_1, results = 'hide', echo=TRUE}
+
+RICH_inv_tbl <- RICH_inv_wide@data
+write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FALSE)
+```
+</details>
+
+<details open><summary class='drop'>14. Invasive cover by species</summary>
+The approach for this metric is similar for metric 10 and 11. You'll need to determine the most common invasive species, which will have their own pie color. If you have >12 species, then you'll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We're only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.
+
+```{r m14_1, results = 'hide', echo = TRUE}
+RICH_inv_pie <- joinQuadData(park = "VAFO", from = 2016, to = 2019, speciesType = 'exotic')
+
+RICH_inv_pie <- make_sppcode(RICH_inv_pie) #adding sppcode- function found in Metric 10.
+
+top_spp <- data.frame(table(RICH_inv_pie$sppcode)) %>% arrange(-Freq)
+top_spp
+```
+There are only 10 species on the list, so we don't have to lump. If you needed to lump, you can use similar code that we did for the regen and tree pies, where you identify the species codes you want to lump, and then assign them to an other_inv group. If you have trouble figuring this out, let me know and I'll add an example.
+
+Now we need to take the sppcode and spread it wide and make into a shapefile.
+```{r m14_2, results = 'hide', echo = TRUE, warning=FALSE}
+
+RICH_inv_pwide <- RICH_inv_pie %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppcode, avg.cover) %>% 
+                                   pivot_wider(names_from = sppcode, 
+                                               values_from = avg.cover, 
+                                               values_fill = 0) %>% 
+                                   select(-NOSPE) # Remove column created by plots with no invasives recorded. 
+
+coordinates(RICH_inv_pwide) <- ~X_Coord + Y_Coord
+proj4string(RICH_inv_pwide) <- CRS("+init=epsg:26918")
+writeOGR(RICH_inv_pwide, dsn = './shapefiles', layer = 'RICH_inv_spp', 
+         driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
+
+```
+</details>
+
+<details open><summary class='drop'>15. Invasive species plot frequency</summary>
+This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we'll join to the dataset to include a Year_added field.
+
+```{r m15_1, results = 'hide', echo = TRUE}
+# Load invasive list, if not already in global environment from previous metrics
+inv_list <- read.csv("../data/Invasive_List.csv")
+MIDN_inv_list <- inv_list %>% filter(MIDN_INV == 1) %>% select(Latin_Name, Year_added) 
+
+# Create species list of exotics found in RICH in all years
+RICH_exo_spplist <- makeSppList(park = "RICH", from = 2007, to = 2019, speciesType = "exotic")
+
+# Merge species list of occurrences with MIDN invasive list
+RICH_inv_spplist2 <- merge(MIDN_inv_list, 
+                           RICH_exo_spplist[ , c("Plot_Number", "Latin_Name", "present", "cycle")], 
+                           by = "Latin_Name", 
+                           all.x = FALSE, all.y = TRUE)
+
+# Summarize by species
+RICH_inv_spplist3 <- RICH_inv_spplist2 %>% filter(!is.na(Year_added)) %>% 
+                                           group_by(Latin_Name, cycle, Year_added) %>% 
+                                           summarize(numplots = sum(present))
+
+# Pivot wide so there's a column for each cycle and a 
+RICH_invlist_wide <- RICH_inv_spplist3 %>% pivot_wider(names_from = cycle, 
+                                                       values_from = numplots, 
+                                                       values_fill = 0) 
+```
+Note that we filled NAs with 0 in the step above because we summarized at the species level for each cycle and 0 means we didn't find it in that cycle. We next want to add the total number of of plots sampled each cycle, so it's clear that cycle 4 is only partial. We'll do that by summarizing data from joinLocEvent() and then merging to RICH_invlist_wide. We'll also merge this dataframe with plants to incorporate the common name for each species.
+
+```{r m15_2, echo=T, results = 'hide'}
+# First join plant table to get common name
+RICH_invlist2 <- merge(RICH_invlist_wide, plants[,c("Latin_Name", "Common")], 
+                       by = "Latin_Name", all.x = TRUE, all.y = FALSE) %>% 
+                 select(Latin_Name, Common, Year_added:Cycle4) #rearranging column order
+
+# Sometimes multiple common names are listed in plants table, but we only want 1. Code below fixes that
+RICH_invlist2$Common <- gsub(",.*$", "\\1", RICH_invlist2$Common) # The first two arguments are java
+# code to split the string using , and then take the first string.
+
+RICH_plot_events <- joinLocEvent(park = "RICH", from = 2007, to = 2019)
+RICH_plot_nums <- RICH_plot_events %>% group_by(cycle) %>% 
+                                       summarize(numvisits = sum(!is.na(Plot_Name))) %>% 
+                                       pivot_wider(names_from = cycle, values_from = numvisits)
+```
+The easiest way to bind the plot number and invasive list together is to make the RICH_plot_nums have the same column names as RICH_invlist2, then to bind the rowse (rbind) together.
+
+```{r m15_3, echo = TRUE, results = 'hide'}
+names(RICH_invlist2)
+RICH_plot_nums$Latin_Name <- as.character("Number of plots")
+RICH_plot_nums$Common <- as.character(NA)
+RICH_plot_nums$Year_added <- as.numeric(NA)
+
+RICH_plot_nums <- RICH_plot_nums[ , names(RICH_invlist2)] #using names from RICH_invlist2 to order columns the same
+
+RICH_invtbl <- rbind(RICH_invlist2, RICH_plot_nums)
+
+write.csv(RICH_invtbl, "./tables/RICH_invspp_plot_freq_M15.csv", row.names = FALSE)
+```
+</details>
+
+
 ### Code printout {.tabset}
 This tab prints all of the code chunks in this file in one long file.
 ```{r show-code, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
