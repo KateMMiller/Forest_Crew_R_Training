@@ -1243,7 +1243,7 @@ nrow(RICHreg_4yr_sum) # 32 is what we're looking for, since there are 32 plots i
 ```
 Now all we need is to make this a spatial object and save as a shapefile
 
-```{r,c75, echo=T, eval=F}
+```{r,c75, echo=T, eval=F, warning=FALSE, message=FALSE, comment=FALSE}
 coordinates(RICHreg_4yr_sum) <- ~X_Coord + Y_Coord
 proj4string(RICHreg_4yr_sum) <- CRS("+init=epsg:26918")
 writeOGR(RICHreg_4yr_sum, dsn = "./shapefiles", layer = "RICH_regen_by_size_class_M1", driver = "ESRI Shapefile")
@@ -1251,7 +1251,7 @@ writeOGR(RICHreg_4yr_sum, dsn = "./shapefiles", layer = "RICH_regen_by_size_clas
 </details>
 </br>
 
-<details open><summary class='drop'>2. Tree diameter distribution figure <b style="color:red">Updated 7-6-20</b></summary>
+<details open><summary class='drop'>2. Tree diameter distribution figure <b style="color:red">Updated 7-7-20</b></summary>
 Now I'm going to show you all the code to produce the tree diameter distribution plot from Day 3 > forestMIDN > Tree diameter distribution. The dataset we need for the figure will have a row for each cycle (1-3 cycles) plus the last 4 years of data (if that differs from cycle 3 year range) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
 
 First we need to compile the tree diameter distribution data using sumTreeDBHDist(). I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4.
@@ -1322,14 +1322,16 @@ tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_
                          geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
-                                       color = "#696969", #hexcode for DimGrey)
-                                       width = 0.2, position = position_dodge(0.9))+
+                                       color = "#303030", 
+                                       width = 0.5, 
+                                       size = 0.3,
+                                       position = position_dodge(0.9))+
                          facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                          labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
                          theme(axis.text = element_text(size = 6), # change axis label size
                                strip.text = element_text(size = 8), # change facet text size
-                               axis.title = element_text(size = 8), # change axis title size
-                               axis.text.x = element_text(angle = 45, hjust = 1)) +
+                               axis.title = element_text(size = 9), # change axis title size
+                               axis.text.x = element_text(angle = 45, hjust = 1))+                                          
                          scale_x_discrete(labels= c('10-20', '20-30', '30-40','40-50',
                                                     '50-60','60-70','70-80',
                                                     '80-90','90-100','100+'))+
@@ -1345,7 +1347,7 @@ ggsave("./figures/RICH_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>2. Tree diameter distribution figure for NCBN park <b style="color:red">Updated 6-23-20</b></summary>
+<details open><summary class='drop'>2. Tree diameter distribution figure for NCBN park <b style="color:red">Updated 7-7-20</b></summary>
 ```{r,c76SAHI, echo=T, results='hide'}
 # In SAHI, cycle 1 = 2008-2011, cycle 2 = 2012-2015, cycle 3 = 2016-2019
 SAHI_tree_dist <- sumTreeDBHDist(park = "SAHI", status = 'live', 
@@ -1381,11 +1383,16 @@ tree_dist_plot <- ggplot(data = SAHI_tree_dist_sum, aes(x = size_class, y = avg_
                          geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
-                                       color = "#696969", #hexcode for DimGrey)
-                                       width = 0.2, position = position_dodge(0.9))+
-                         facet_wrap(~cycle, ncol=3, labeller = as_labeller(cycle_names))+
+                                       color = "#303030", 
+                                       width = 0.5, 
+                                       size = 0.3,
+                                       position = position_dodge(0.9))+
+                         facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                          labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
-                         theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+                         theme(axis.text = element_text(size = 6), # change axis label size
+                               strip.text = element_text(size = 8), # change facet text size
+                               axis.title = element_text(size = 9), # change axis title size
+                               axis.text.x = element_text(angle = 45, hjust = 1))+
                          scale_x_discrete(labels= c('10-20', '20-30', '30-40','40-50',
                                                     '50-60','60-70','70-80',
                                                     '80-90','90-100','100+'))+
@@ -1396,12 +1403,12 @@ print(tree_dist_plot)
 Now save ggplot graph as jpeg using the ggsave function from ggplot2. 
 ```{r, c81SAHI, echo=T}
 ggsave("./figures/SAHI_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300, 
-       width = 10, height = 7, units = 'in')
+       width = 5.7, height = 4, units = 'in')
 ```
 </details>
 </br>
 
-<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 6-23-20</b></summary>
+<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 7-7-20</b></summary>
 Similar to the tree diameter distribution plot, the dataset we need for this figure will have a row for each cycle (1-3 cycles, and last 4 years) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
 
 I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4, and change the cycle to "last4yr", so I can use cycle as the grouping factor to summarize.
@@ -1462,11 +1469,20 @@ regen_plot <- ggplot(data = RICH_regen_sum, aes(x = size_class, y = avg_dens))+
                      geom_bar(stat = 'identity', fill = '#5F9EA0')+ #hexcode for CadetBlue
                      geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                        ymax = avg_dens + se_dens, x = size_class),
-                                       color = "#696969", #hexcode for DimGrey)
-                                       width = 0.2, position = position_dodge(0.9))+
-                     facet_wrap(~cycle, ncol=4, labeller = as_labeller(cycle_names))+
+                                       color = "#696969", 
+                                       width = 0.3, 
+                                       position = position_dodge(0.9))+
+                     facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                      labs(x = "Regeneration Density (cm)", y = "stems/ha")+
-                     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+                     theme(axis.text = element_text(size = 6), 
+                           strip.text = element_text(size = 8), 
+                           axis.title = element_text(size = 9),
+                           axis.text.x = element_text(angle = 45, hjust = 1),
+                           axis.line = element_line(color = "#696969", size = 0.01),
+                           axis.ticks = element_line(color = "#696969", size = 0.5),
+                           panel.border = element_blank(),
+                           panel.background = element_blank(),
+                           strip.background = element_blank())+
                      scale_x_discrete(labels= c('15-30cm', '30-100cm', '100-150cm','>150cm',
                                                 '1-10cm DBH'))+
                      theme_FVM()
@@ -1478,7 +1494,7 @@ Now save ggplot graph as jpeg.
 
 ```{r, c87,echo=T}
 ggsave("./figures/RICH_Regen_size_class_M3.jpg", regen_plot, dpi = 300, 
-       width = 10, height = 7, units = 'in')
+       width = 5.7, height = 4, units = 'in')
 ```
 </details>
 </br>
@@ -1512,7 +1528,7 @@ nrow(RICH_regen_map3)
 ```
 
 The last step to get to RICH_regen_map3 created the regen_dens column that summed all of the seedlings and saplings together. We then selected the columns we care about with select. Finally, we reshaped the data so that we end up with one row for each plot and a column for each cycle that shows the regeneration density. Noe the use of values_fill = NA. That forces plots that haven't been sampled in cycle 4 to show NA (blank) instead of 0. Now to save as a shapefile.
-```{r, c90,echo=T, eval=F}
+```{r, c90,echo=T, eval=F, warning=FALSE, message=FALSE, comment=FALSE}
 coordinates(RICH_regen_map3) <- ~X_Coord + Y_Coord
 proj4string(RICH_regen_map3) <- CRS("+init=epsg:26918")
 writeOGR(RICH_regen_map3, dsn = "./shapefiles", layer = "RICH_regen_density_by_cycle_M4", driver = "ESRI Shapefile")
@@ -1561,7 +1577,7 @@ write.csv(RICH_regen_tbl3, './tables/Seedlings_saplings_stocking_table_M5.csv', 
 
 <details open><summary class='drop'>6. Deer browse index map</summary>
 For this summary, we're going pull out the deer browse index assigned to each plot in the most recent visit, and save it as a shapefile to map.
-```{r, c95,echo=T, results='hide', eval=F}
+```{r, c95,echo=T, results='hide', eval=F, warning=FALSE, message=FALSE, comment=FALSE}
 RICH_dbi_shp <- joinStandData(park = "RICH", from = 2016, to = 2019) 
 names(RICH_dbi_shp)
 nrow(RICH_dbi_shp)
@@ -1578,11 +1594,11 @@ writeOGR(RICH_dbi_shp2, dsn = "./shapefiles", layer = "RICH_DBI_M6", driver = "E
 </details>
 </br>
 
-<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 6-23-20</b></summary>
+<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 7-7-20</b></summary>
 For this summary, we're going average the deer browse by each completed cycle and the last 4 years, and then graph the results as points with error bars in ggplot.  
 ```{r, c96,echo=T}
 RICH_dbi_c1.3 <- joinStandData(park = "RICH", from = 2009, to = 2018)
-RICH_dbi_4yr <- joinStandData(park = "RICH", from =2016, to = 2019) %>% 
+RICH_dbi_4yr <- joinStandData(park = "RICH", from = 2016, to = 2019) %>% 
                   mutate(cycle = "last4yr") # Most of my functions work with pipes too, fyi
 
 RICH_dbi <- rbind(RICH_dbi_c1.3, RICH_dbi_4yr)
@@ -1590,7 +1606,8 @@ RICH_dbi <- rbind(RICH_dbi_c1.3, RICH_dbi_4yr)
 RICH_dbi_sum <- RICH_dbi %>% select(Plot_Name, cycle, Deer_Browse_Line_ID) %>% 
                              group_by(cycle) %>% 
                              summarize(mean_dbi = mean(Deer_Browse_Line_ID, na.rm = TRUE),
-                                       se_dbi = sd(Deer_Browse_Line_ID, na.rm = TRUE)/sqrt(sum(!is.na(Deer_Browse_Line_ID))),
+                                       se_dbi = sd(Deer_Browse_Line_ID, na.rm = TRUE)/
+                                                sqrt(sum(!is.na(Deer_Browse_Line_ID))),
                                        numplots = sum(!is.na(Deer_Browse_Line_ID)))
 RICH_dbi_sum
 sort(unique(RICH_dbi_sum$cycle)) # they're in the right order, so don't need to reset order before plotting.
@@ -1603,11 +1620,14 @@ Now we're going to plot the data.
 dbi_plot <- ggplot(data = RICH_dbi_sum, aes(x = cycle, y = mean_dbi))+
                    geom_errorbar(aes(ymin = mean_dbi - se_dbi, 
                                      ymax = mean_dbi + se_dbi, x = cycle),
-                                     color = "#696969", #hexcode for DimGrey)
-                                     width = 0.3, position = position_dodge(0.9))+
-                   geom_point(size=3)+ #ordered so points are drawn on top of error bars
+                                     color = "#696969", 
+                                     width = 0.2, 
+                                     position = position_dodge(0.9))+
+                   geom_point(size=2)+ #ordered so points are drawn on top of error bars
                    labs(x = NULL, y = "Average Deer Browse Impact")+
-                   theme(axis.text.y = element_text(angle = 45, hjust = 1))+
+                   theme(axis.text.y = element_text(angle = 45, hjust = 1),
+                         axis.text = element_text(size = 8), 
+                         axis.title = element_text(size = 9))+
                    scale_x_discrete(labels= c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
                    scale_y_continuous(limits = c(1.5,5.5), breaks = c(2, 3, 4, 5), 
                                       labels = c("Low", "Moderate", "High", "Severe"))+  
@@ -1621,13 +1641,13 @@ Now save the plot
 
 ```{r, c98,echo=T}
 ggsave("./figures/RICH_DBI_by_cycle_M7.jpg", dbi_plot, dpi = 300, 
-       width = 10, height = 7, units = 'in')
+       width = 5.7, height = 4, units = 'in')
 ```
 
 </details>
 </br>
 
-<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 6-23-20</b></summary>
+<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 7-7-20</b></summary>
 This summary will result in a bar chart of the mean stocking index for each cycle and the last 4 years, along with horizontal lines to indicate the stocking index thresholds. First we need to summarize the data using joinRegenData(). We also only want to include native canopy forming species.
 
 ```{r,c99, echo=T, results = 'hide'}
@@ -1668,9 +1688,13 @@ stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
                      geom_bar(stat = 'identity', fill = '#5F9EA0', width = 0.8)+
                      geom_errorbar(aes(ymin = mean_stock - se_stock, 
                                        ymax = mean_stock + se_stock, x = cycle), 
-                                   color = "#696969", width = 0.2)+
+                                   color = "#303030", 
+                                   width = 0.2, 
+                                   size = 0.3)+
                      labs(x = NULL, y = "Mean Stocking Index (per sq.m)")+
                      scale_x_discrete(labels = c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
+                     theme(axis.text = element_text(size = 8),
+                           axis.title = element_text(size = 9))+
                      theme_FVM()+
                      geom_hline(yintercept = 1.989, lty = 2, lwd = 1, color = '#CD5C5C')+ #IndianRed
                      geom_hline(yintercept = 7.958, lty = 3, lwd = 1, color = '#32CD32') #LimeGreen
@@ -1681,7 +1705,7 @@ Now save the plot
 
 ```{r, c103,echo=T}
 ggsave("./figures/RICH_stock_by_cycle_M8.jpg", stock_plot, dpi = 300, 
-       width = 10, height = 7, units = 'in')
+       width = 5.7, height = 4, units = 'in')
 ```
 
 </details>
@@ -1689,7 +1713,7 @@ ggsave("./figures/RICH_stock_by_cycle_M8.jpg", stock_plot, dpi = 300,
 
 <details open><summary class='drop'>9. Stocking Index map </summary>
 For this summary, we want the output to include a stocking index value for each plot from the last 4 years, and we'll save it as a shapefile.
-```{r, c104,echo=T, eval=F}
+```{r, c104,echo=T, eval=F, warning=FALSE, message=FALSE, comment=FALSE}
 RICH_stock_shp <- joinRegenData(park = "RICH", from = 2016, to = 2019, speciesType = 'native', 
                                 canopyForm = 'canopy', units = 'sq.m') 
 
@@ -1833,7 +1857,7 @@ RICH_reg_spp2 <- RICH_reg_spp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Co
 
 Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output.
 
-```{r, m10_7, echo=T, results = 'hide', messages='hide', warning = FALSE}
+```{r, m10_7, echo=T, results = 'hide', warning=FALSE, message=FALSE, comment=FALSE}
 RICH_reg_wide <- RICH_reg_spp2 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %>% 
                     arrange(sppgrp) %>% 
@@ -1847,12 +1871,12 @@ writeOGR(RICH_reg_wide, dsn = './shapefiles', layer = 'RICH_reg_spp',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 ```
 </details>
-
+</br>
 
 <details open><summary class='drop'>11. Tree composition</summary>
 This metric is going to have a similar approach as metric 10, except we'll be using the joinTreeData() function now. I also need to link the tree and plant table data to get Canopy_Exclusion to make lowcanopy group.
 
-```{r m11_1, echo = T, results = 'hide', message = 'hide', warning = FALSE}
+```{r m11_1, echo = T, results = 'hide', warning=FALSE, message=FALSE, comment=FALSE}
 RICH_tree <- joinTreeData(park = "RICH", from = 2016, to = 2019, 
                           speciesType = 'all', canopyForm = 'all', status = 'live')
 
@@ -1932,7 +1956,7 @@ writeOGR(RICH_tree_wide, dsn = './shapefiles', layer = 'RICH_tree_spp',
 
 ```
 </details>
-
+</br>
 
 <details open><summary class='drop'>12. Invasive cover by cycle</summary>
 This metric is more straightforward than the previous two. The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. 
@@ -1977,7 +2001,7 @@ table(complete.cases(RICH_inv_merge$avg.cover)) # no there aren't any NAs
 ```
 
 Now time to pivot the table wide by cycle, and then save to shapefile.
-```{r m12_4, echo=T, results = 'hide', warning = FALSE}
+```{r m12_4, echo=T, results = 'hide', warning=FALSE, message=FALSE, comment=FALSE}
 
 RICH_inv_wide <- RICH_inv_merge %>% select(Plot_Name, cycle, Plot_Number, X_Coord, Y_Coord, avg.cover) %>% 
                                     arrange(Plot_Name, cycle) %>% 
@@ -1992,6 +2016,7 @@ writeOGR(RICH_inv_wide, dsn = './shapefiles', layer = 'RICH_inv_cycle',
 
 ```
 </details>
+</br>
 
 <details open><summary class='drop'>13. Invasive cover table</summary>
 The shapefile we generated in metric 12 has the same information that we'll provide in this metric, but as a table. To save time, I'll just take the data from the shapefile and save it as a csv. When you create spatial dataframes in R, the data (eg think if this as the attribute table in GIS) can be accessed via the data slot, which you use \@data to access. If you're starting from scratch, just run the code for metric 12 up until you create RICH_inv_wide. Before converting to shapefile, save the data frame as a csv.  
@@ -2001,6 +2026,7 @@ RICH_inv_tbl <- RICH_inv_wide@data
 write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FALSE)
 ```
 </details>
+</br>
 
 <details open><summary class='drop'>14. Invasive cover by species</summary>
 The approach for this metric is similar for metric 10 and 11. You'll need to determine the most common invasive species, which will have their own pie color. If you have >12 species, then you'll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We're only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.
@@ -2016,7 +2042,7 @@ top_spp
 There are only 10 species on the list, so we don't have to lump. If you needed to lump, you can use similar code that we did for the regen and tree pies, where you identify the species codes you want to lump, and then assign them to an other_inv group. If you have trouble figuring this out, let me know and I'll add an example.
 
 Now we need to take the sppcode and spread it wide and make into a shapefile.
-```{r m14_2, results = 'hide', echo = TRUE, warning=FALSE}
+```{r m14_2, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 
 RICH_inv_pwide <- RICH_inv_pie %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppcode, avg.cover) %>% 
                                    pivot_wider(names_from = sppcode, 
@@ -2031,6 +2057,7 @@ writeOGR(RICH_inv_pwide, dsn = './shapefiles', layer = 'RICH_inv_spp',
 
 ```
 </details>
+</br>
 
 <details open><summary class='drop'>15. Invasive species plot frequency</summary>
 This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we'll join to the dataset to include a Year_added field.
@@ -2091,7 +2118,7 @@ RICH_invtbl <- rbind(RICH_invlist2, RICH_plot_nums)
 write.csv(RICH_invtbl, "./tables/RICH_invspp_plot_freq_M15.csv", row.names = FALSE)
 ```
 </details>
-
+</br>
 
 ### Code printout {.tabset}
 This tab prints all of the code chunks in this file in one long file.
