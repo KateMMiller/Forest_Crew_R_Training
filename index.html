@@ -434,7 +434,7 @@ b&&a.attributes&&a.attributes[b]?a.attributes[b].value:null},sc=function(a){var 
 f=f.parentElement}return null},vc=function(a){hc.sendBeacon&&hc.sendBeacon(a)||oc(a)},wc=function(a,b){var c=a[b];c&&"string"===typeof c.animVal&&(c=c.animVal);return c};var xc={},I=function(a,b){xc[a]=xc[a]||[];xc[a][b]=!0},yc=function(a){for(var b=[],c=xc[a]||[],d=0;d<c.length;d++)c[d]&&(b[Math.floor(d/6)]^=1<<d%6);for(var e=0;e<b.length;e++)b[e]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".charAt(b[e]||0);return b.join("")};var zc={},Ac=function(a){return void 0==zc[a]?!1:zc[a]};var Bc=[];function Dc(){var a=jc("google_tag_data",{});a.ics||(a.ics={entries:{},set:Ec,update:Fc,addListener:Gc,notifyListeners:Hc,active:!1});return a.ics}
 function Ec(a,b,c,d,e,f){var h=Dc();h.active=!0;if(void 0!=b){var k=h.entries,l=k[a]||{},m=l.region,p=c&&g(c)?c.toUpperCase():void 0;d=d.toUpperCase();e=e.toUpperCase();if(p===e||(p===d?m!==e:!p&&!m)){var r=!!(f&&0<f&&void 0===l.update),t={region:p,initial:"granted"===b,update:l.update,quiet:r};k[a]=t;r&&E.setTimeout(function(){k[a]===t&&t.quiet&&(t.quiet=!1,Ic(a),Hc(),I("TAGGING",2))},f)}}}
 function Fc(a,b){var c=Dc();c.active=!0;if(void 0!=b){var d=Jc(a),e=c.entries,f=e[a]=e[a]||{};f.update="granted"===b;var h=Jc(a);f.quiet?(f.quiet=!1,Ic(a)):h!==d&&Ic(a)}}function Gc(a,b){Bc.push({me:a,wg:b})}function Ic(a){for(var b=0;b<Bc.length;++b){var c=Bc[b];sa(c.me)&&-1!==c.me.indexOf(a)&&(c.Ne=!0)}}function Hc(){for(var a=0;a<Bc.length;++a){var b=Bc[a];if(b.Ne){b.Ne=!1;try{b.wg.call()}catch(c){}}}}
-var Jc=function(a){var b=Dc().entries[a]||{};return void 0!==b.update?b.update:void 0!==b.initial?b.initial:void 0},Kc=function(a){return!(Dc().entries[a]||{}).quiet},Lc=function(){return Ac("gtag_cs_api")?Dc().active:!1},Mc=function(a,b){Dc().addListener(a,b)},Nc=function(a,b){function c(){for(var e=0;e<b.length;e++)if(!Kc(b[e]))return!0;return!1}if(c()){var d=!1;Mc(b,function(){d||c()||(d=!0,a())})}else a()},Oc=function(a,b){if(!1===Jc(b)){var c=!1;Mc([b],function(){!c&&Jc(b)&&(a(),c=!0)})}};var Pc=[C.o,C.H],Qc=function(a){var b=a[C.sh];b&&I("GTM",40);var c=a[C.vh];c&&I("GTM",41);for(var d=sa(b)?b:[b],e=0;e<d.length;++e)for(var f=0;f<Pc.length;f++){var h=Pc[f],k=a[Pc[f]],l=d[e];Dc().set(h,k,l,"US","US-CO",c)}},Rc=function(a){for(var b=0;b<Pc.length;b++){var c=Pc[b],d=a[Pc[b]];Dc().update(c,d)}Dc().notifyListeners()},Sc=function(a){var b=Jc(a);return void 0!=b?b:!0},Tc=function(){for(var a=[],b=0;b<Pc.length;b++){var c=Jc(Pc[b]);a[b]=!0===c?"1":!1===c?"0":"-"}return"G1"+
+var Jc=function(a){var b=Dc().entries[a]||{};return void 0!==b.update?b.update:void 0!==b.initial?b.initial:void 0},Kc=function(a){return!(Dc().entries[a]||{}).quiet},Lc=function(){return Ac("gtag_cs_api")?Dc().active:!1},Mc=function(a,b){Dc().addListener(a,b)},Nc=function(a,b){function c(){for(var e=0;e<b.length;e++)if(!Kc(b[e]))return!0;return!1}if(c()){var d=!1;Mc(b,function(){d||c()||(d=!0,a())})}else a()},Oc=function(a,b){if(!1===Jc(b)){var c=!1;Mc([b],function(){!c&&Jc(b)&&(a(),c=!0)})}};var Pc=[C.o,C.H],Qc=function(a){var b=a[C.sh];b&&I("GTM",40);var c=a[C.vh];c&&I("GTM",41);for(var d=sa(b)?b:[b],e=0;e<d.length;++e)for(var f=0;f<Pc.length;f++){var h=Pc[f],k=a[Pc[f]],l=d[e];Dc().set(h,k,l,"US","US-ME",c)}},Rc=function(a){for(var b=0;b<Pc.length;b++){var c=Pc[b],d=a[Pc[b]];Dc().update(c,d)}Dc().notifyListeners()},Sc=function(a){var b=Jc(a);return void 0!=b?b:!0},Tc=function(){for(var a=[],b=0;b<Pc.length;b++){var c=Jc(Pc[b]);a[b]=!0===c?"1":!1===c?"0":"-"}return"G1"+
 a.join("")},Uc=function(a){Oc(a,C.o)},Vc=function(a,b){Nc(a,b)};var Xc=function(a){return Wc?F.querySelectorAll(a):null},Yc=function(a,b){if(!Wc)return null;if(Element.prototype.closest)try{return a.closest(b)}catch(e){return null}var c=Element.prototype.matches||Element.prototype.webkitMatchesSelector||Element.prototype.mozMatchesSelector||Element.prototype.msMatchesSelector||Element.prototype.oMatchesSelector,d=a;if(!F.documentElement.contains(d))return null;do{try{if(c.call(d,b))return d}catch(e){break}d=d.parentElement||d.parentNode}while(null!==d&&1===d.nodeType);
 return null},Zc=!1;if(F.querySelectorAll)try{var $c=F.querySelectorAll(":root");$c&&1==$c.length&&$c[0]==F.documentElement&&(Zc=!0)}catch(a){}var Wc=Zc;var K={},od=null,pd=Math.random();K.s="UA-171818766-1";K.Ob="6o0";K.Ld="";var qd={__cl:!0,__ecl:!0,__ehl:!0,__evl:!0,__fal:!0,__fil:!0,__fsl:!0,__hl:!0,__jel:!0,__lcl:!0,__sdl:!0,__tl:!0,__ytl:!0,__paused:!0,__tg:!0},rd="www.googletagmanager.com/gtm.js";rd="www.googletagmanager.com/gtag/js";
 var sd=rd,td=null,ud=null,vd=null,wd="//www.googletagmanager.com/a?id="+K.s+"&cv=1",xd={},yd={},zd=function(){var a=od.sequence||0;od.sequence=a+1;return a};
@@ -2538,8 +2538,9 @@ make_spp_list &lt;- function(df){
       vec &lt;- df %&gt;% select(sppcode) %&gt;% unique()
       }
 
-lowcan_tr &lt;- RICH_tree2 %&gt;% 
-                filter(Canopy_Exclusion == TRUE &amp; Latin_Name != &quot;No species recorded&quot;) %&gt;% 
+lowcan_tr &lt;- RICH_tree2 %&gt;% filter(Canopy_Exclusion == TRUE) %&gt;% 
+                            filter(Latin_Name != &quot;No species recorded&quot;) %&gt;%
+                            filter(Exotic == FALSE) %&gt;% 
                 make_spp_list()
 
 exotic_tr &lt;- RICH_tree2 %&gt;% filter(Exotic == TRUE) %&gt;% make_spp_list()
@@ -2586,13 +2587,16 @@ table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do
 RICH_tree3 &lt;- RICH_tree2 %&gt;% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %&gt;% 
                                       summarize(BA_m2ha = sum(BA_cm2, na.rm = TRUE)/400)
 
+table(RICH_tree3$sppgrp) # number of plots a species group occurs in
+
 # Make the dataset wide, so there&#39;s a row for each plot and a column for each species group
 RICH_tree_wide &lt;- RICH_tree3 %&gt;% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, BA_m2ha) %&gt;% 
                     arrange(sppgrp) %&gt;% 
                     pivot_wider(names_from = &quot;sppgrp&quot;, 
                                 values_from = &quot;BA_m2ha&quot;, 
-                                values_fill = 0) #%&gt;% select(-NOSPE)
+                                values_fill = 0) %&gt;% 
+  ungroup()#%&gt;% select(-NOSPE)
 
 head(RICH_tree_wide)
 
@@ -3648,8 +3652,9 @@ make_spp_list &lt;- function(df){
       vec &lt;- df %&gt;% select(sppcode) %&gt;% unique()
       }
 
-lowcan_tr &lt;- RICH_tree2 %&gt;% 
-                filter(Canopy_Exclusion == TRUE &amp; Latin_Name != &quot;No species recorded&quot;) %&gt;% 
+lowcan_tr &lt;- RICH_tree2 %&gt;% filter(Canopy_Exclusion == TRUE) %&gt;% 
+                            filter(Latin_Name != &quot;No species recorded&quot;) %&gt;%
+                            filter(Exotic == FALSE) %&gt;% 
                 make_spp_list()
 
 exotic_tr &lt;- RICH_tree2 %&gt;% filter(Exotic == TRUE) %&gt;% make_spp_list()
@@ -3696,13 +3701,16 @@ table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do
 RICH_tree3 &lt;- RICH_tree2 %&gt;% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %&gt;% 
                                       summarize(BA_m2ha = sum(BA_cm2, na.rm = TRUE)/400)
 
+table(RICH_tree3$sppgrp) # number of plots a species group occurs in
+
 # Make the dataset wide, so there&#39;s a row for each plot and a column for each species group
 RICH_tree_wide &lt;- RICH_tree3 %&gt;% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, BA_m2ha) %&gt;% 
                     arrange(sppgrp) %&gt;% 
                     pivot_wider(names_from = &quot;sppgrp&quot;, 
                                 values_from = &quot;BA_m2ha&quot;, 
-                                values_fill = 0) #%&gt;% select(-NOSPE)
+                                values_fill = 0) %&gt;% 
+  ungroup()#%&gt;% select(-NOSPE)
 
 head(RICH_tree_wide)
 

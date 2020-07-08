@@ -1904,8 +1904,9 @@ make_spp_list <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
       }
 
-lowcan_tr <- RICH_tree2 %>% 
-                filter(Canopy_Exclusion == TRUE & Latin_Name != "No species recorded") %>% 
+lowcan_tr <- RICH_tree2 %>% filter(Canopy_Exclusion == TRUE) %>% 
+                            filter(Latin_Name != "No species recorded") %>%
+                            filter(Exotic == FALSE) %>% 
                 make_spp_list()
 
 exotic_tr <- RICH_tree2 %>% filter(Exotic == TRUE) %>% make_spp_list()
@@ -1952,13 +1953,16 @@ table(RICH_tree2$sppgrp) # made it down to 12 species groups. You may have to do
 RICH_tree3 <- RICH_tree2 %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
                                       summarize(BA_m2ha = sum(BA_cm2, na.rm = TRUE)/400)
 
+table(RICH_tree3$sppgrp) # number of plots a species group occurs in
+
 # Make the dataset wide, so there's a row for each plot and a column for each species group
 RICH_tree_wide <- RICH_tree3 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, BA_m2ha) %>% 
                     arrange(sppgrp) %>% 
                     pivot_wider(names_from = "sppgrp", 
                                 values_from = "BA_m2ha", 
-                                values_fill = 0) #%>% select(-NOSPE)
+                                values_fill = 0) %>% 
+  ungroup()#%>% select(-NOSPE)
 
 head(RICH_tree_wide)
 
