@@ -1806,7 +1806,9 @@ make_spp_list <- function(df){
       }
 
 lowcan_spp <- RICH_reg_spp %>% 
-                filter(Canopy_Exclusion == TRUE & Latin_Name != "No species recorded") %>% 
+                filter(Canopy_Exclusion == TRUE) %>% 
+                filter(Latin_Name != "No species recorded") %>%
+                filter(Exotic == FALSE) %>% 
                 make_spp_list()
 
 
@@ -1874,7 +1876,8 @@ RICH_reg_wide <- RICH_reg_spp2 %>%
                     arrange(sppgrp) %>% 
                     pivot_wider(names_from = "sppgrp", 
                                 values_from = "reg_den", 
-                                values_fill = 0) %>% select(-NOSPE)
+                                values_fill = 0) %>% select(-NOSPE) %>% 
+                    ungroup()
 
 coordinates(RICH_reg_wide) <- ~X_Coord + Y_Coord
 proj4string(RICH_reg_wide) <- CRS("+init=epsg:26918")

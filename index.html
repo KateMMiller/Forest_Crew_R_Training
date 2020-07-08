@@ -2452,7 +2452,9 @@ RICH_reg_spp &lt;- make_sppcode(RICH_reg_spp) </code></pre>
       }
 
 lowcan_spp &lt;- RICH_reg_spp %&gt;% 
-                filter(Canopy_Exclusion == TRUE &amp; Latin_Name != &quot;No species recorded&quot;) %&gt;% 
+                filter(Canopy_Exclusion == TRUE) %&gt;% 
+                filter(Latin_Name != &quot;No species recorded&quot;) %&gt;%
+                filter(Exotic == FALSE) %&gt;% 
                 make_spp_list()
 
 
@@ -2512,7 +2514,8 @@ RICH_reg_spp2 &lt;- RICH_reg_spp %&gt;% group_by(Plot_Name, Plot_Number, X_Coord
                     arrange(sppgrp) %&gt;% 
                     pivot_wider(names_from = &quot;sppgrp&quot;, 
                                 values_from = &quot;reg_den&quot;, 
-                                values_fill = 0) %&gt;% select(-NOSPE)
+                                values_fill = 0) %&gt;% select(-NOSPE) %&gt;% 
+                    ungroup()
 
 coordinates(RICH_reg_wide) &lt;- ~X_Coord + Y_Coord
 proj4string(RICH_reg_wide) &lt;- CRS(&quot;+init=epsg:26918&quot;)
@@ -3564,7 +3567,9 @@ make_spp_list &lt;- function(df){
       }
 
 lowcan_spp &lt;- RICH_reg_spp %&gt;% 
-                filter(Canopy_Exclusion == TRUE &amp; Latin_Name != &quot;No species recorded&quot;) %&gt;% 
+                filter(Canopy_Exclusion == TRUE) %&gt;% 
+                filter(Latin_Name != &quot;No species recorded&quot;) %&gt;%
+                filter(Exotic == FALSE) %&gt;% 
                 make_spp_list()
 
 
@@ -3623,7 +3628,8 @@ RICH_reg_wide &lt;- RICH_reg_spp2 %&gt;%
                     arrange(sppgrp) %&gt;% 
                     pivot_wider(names_from = &quot;sppgrp&quot;, 
                                 values_from = &quot;reg_den&quot;, 
-                                values_fill = 0) %&gt;% select(-NOSPE)
+                                values_fill = 0) %&gt;% select(-NOSPE) %&gt;% 
+                    ungroup()
 
 coordinates(RICH_reg_wide) &lt;- ~X_Coord + Y_Coord
 proj4string(RICH_reg_wide) &lt;- CRS(&quot;+init=epsg:26918&quot;)
