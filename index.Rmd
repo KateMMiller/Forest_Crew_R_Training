@@ -2046,38 +2046,62 @@ write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FAL
 </details>
 </br>
 
-<details open><summary class='drop'>14. Invasive cover by species</summary>
+<details open><summary class='drop'>14. Invasive cover by species <b style="color:red">Updated 7-8-20</b></summary>
 The approach for this metric is similar for metric 10 and 11. You'll need to determine the most common invasive species, which will have their own pie color. If you have >12 species, then you'll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We're only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.
 
+I'm going to use GETT, since there are a lot of invasive species in that park
 ```{r m14_1, results = 'hide', echo = TRUE}
-RICH_inv_pie <- joinQuadData(park = "VAFO", from = 2016, to = 2019, speciesType = 'exotic')
+GETT_inv_pie <- joinQuadData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic')
 
-RICH_inv_pie <- make_sppcode(RICH_inv_pie) #adding sppcode- function found in Metric 10.
+GETT_inv_pie <- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
 
-top_spp <- data.frame(table(RICH_inv_pie$sppcode)) %>% arrange(-Freq)
-top_spp
+top_spp <- data.frame(table(GETT_inv_pie$sppcode)) %>% arrange(-Freq)
+top_spp 
+
+# Just want to rename LON- to LONSPP so cleaner
+GETT_inv_pie$sppcode[GETT_inv_pie$sppcode == "LON-"]<-"LONSPP"
+sort(unique(GETT_inv_pie$sppcode))
 ```
-There are only 10 species on the list, so we don't have to lump. If you needed to lump, you can use similar code that we did for the regen and tree pies, where you identify the species codes you want to lump, and then assign them to an other_inv group. If you have trouble figuring this out, let me know and I'll add an example.
+There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 & 12. 
+
+```{r m14_2, results = 'hide', echo=TRUE}
+inv_herb <- data.frame(sppcode = c("DUCIND", "PERLON", "ALLPET"))
+inv_woody <- data.frame(sppcode = c("DIOOPP", "CELORB", "EUOALA", "ELAANG", "ELASPP", "ELAUMB", "LONSPP"))
+
+GETT_inv_pie <- GETT_inv_pie %>% mutate(sppgrp = case_when(sppcode %in% inv_herb$sppcode ~ paste0("INVHERB"),
+                                                           sppcode %in% inv_woody$sppcode ~ paste0("INVWDY"),
+                                                           TRUE ~ paste0(sppcode)
+  
+  
+))
+
+# Summarize so only 1 sppgrp per plot
+GETT_inv_pie2 <- GETT_inv_pie %>% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
+                                  summarize(avg.cover = sum(avg.cover, na.rm=T))
+
+
+```
 
 Now we need to take the sppcode and spread it wide and make into a shapefile.
-```{r m14_2, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
+```{r m14_3, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 
-RICH_inv_pwide <- RICH_inv_pie %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppcode, avg.cover) %>% 
-                                   pivot_wider(names_from = sppcode, 
+GETT_inv_pwide <- GETT_inv_pie2 %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, avg.cover) %>% 
+                                    pivot_wider(names_from = sppgrp,
                                                values_from = avg.cover, 
-                                               values_fill = 0) %>% 
-                                   select(-NOSPE) # Remove column created by plots with no invasives recorded. 
+                                               values_fill = 0) #%>% 
+                                    #select(-NOSPE) # Every plot has an invasive in GETT, 
+                                    #so don't have NOSPE to remove recorded. 
 
-coordinates(RICH_inv_pwide) <- ~X_Coord + Y_Coord
-proj4string(RICH_inv_pwide) <- CRS("+init=epsg:26918")
-writeOGR(RICH_inv_pwide, dsn = './shapefiles', layer = 'RICH_inv_spp', 
+coordinates(GETT_inv_pwide) <- ~X_Coord + Y_Coord
+proj4string(GETT_inv_pwide) <- CRS("+init=epsg:26918")
+writeOGR(GETT_inv_pwide, dsn = './shapefiles', layer = 'GETT_inv_spp', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 
 ```
 </details>
 </br>
 
-<details open><summary class='drop'>15. Invasive species plot frequency</summary>
+<details open><summary class='drop'>15. Invasive species plot frequency <b style="color:red">Updated 7-8-20</b></summary>
 This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we'll join to the dataset to include a Year_added field.
 
 ```{r m15_1, results = 'hide', echo = TRUE}
@@ -2090,14 +2114,25 @@ RICH_exo_spplist <- makeSppList(park = "RICH", from = 2007, to = 2019, speciesTy
 
 # Merge species list of occurrences with MIDN invasive list
 RICH_inv_spplist2 <- merge(MIDN_inv_list, 
-                           RICH_exo_spplist[ , c("Plot_Number", "Latin_Name", "present", "cycle")], 
+                           RICH_exo_spplist[ , c("Plot_Number", "Latin_Name", "Common", "present", "cycle")], 
                            by = "Latin_Name", 
                            all.x = FALSE, all.y = TRUE)
 
 # Summarize by species
 RICH_inv_spplist3 <- RICH_inv_spplist2 %>% filter(!is.na(Year_added)) %>% 
-                                           group_by(Latin_Name, cycle, Year_added) %>% 
+                                           group_by(Latin_Name, Common, cycle, Year_added) %>% 
                                            summarize(numplots = sum(present))
+
+# Sometimes multiple common names are listed in plants table, but we only want 1. Code below fixes that
+RICH_inv_spplist3$Common <- gsub(",.*$", "\\1", RICH_inv_spplist3$Common) # The first two arguments are java
+# code to split the string using , and then take the first string.
+
+sort(unique(RICH_inv_spplist3$Common)) # I prefer calling Persicaria perfoliata mile-a-minute
+RICH_inv_spplist3$Common[RICH_inv_spplist3$Common == "Asiatic tearthumb"] <- "mile-a-minute"
+# I also prefer calling Vinca minor lesser periwinkle
+RICH_inv_spplist3$Common[RICH_inv_spplist3$Common == "myrtle"] <- "lesser periwinkle"
+sort(unique(RICH_inv_spplist3$Common)) # I prefer calling Persicaria perfoliata mile-a-minute
+# That looks better!
 
 # Pivot wide so there's a column for each cycle and a 
 RICH_invlist_wide <- RICH_inv_spplist3 %>% pivot_wider(names_from = cycle, 
@@ -2107,15 +2142,6 @@ RICH_invlist_wide <- RICH_inv_spplist3 %>% pivot_wider(names_from = cycle,
 Note that we filled NAs with 0 in the step above because we summarized at the species level for each cycle and 0 means we didn't find it in that cycle. We next want to add the total number of of plots sampled each cycle, so it's clear that cycle 4 is only partial. We'll do that by summarizing data from joinLocEvent() and then merging to RICH_invlist_wide. We'll also merge this dataframe with plants to incorporate the common name for each species.
 
 ```{r m15_2, echo=T, results = 'hide'}
-# First join plant table to get common name
-RICH_invlist2 <- merge(RICH_invlist_wide, plants[,c("Latin_Name", "Common")], 
-                       by = "Latin_Name", all.x = TRUE, all.y = FALSE) %>% 
-                 select(Latin_Name, Common, Year_added:Cycle4) #rearranging column order
-
-# Sometimes multiple common names are listed in plants table, but we only want 1. Code below fixes that
-RICH_invlist2$Common <- gsub(",.*$", "\\1", RICH_invlist2$Common) # The first two arguments are java
-# code to split the string using , and then take the first string.
-
 RICH_plot_events <- joinLocEvent(park = "RICH", from = 2007, to = 2019)
 RICH_plot_nums <- RICH_plot_events %>% group_by(cycle) %>% 
                                        summarize(numvisits = sum(!is.na(Plot_Name))) %>% 
@@ -2124,14 +2150,14 @@ RICH_plot_nums <- RICH_plot_events %>% group_by(cycle) %>%
 The easiest way to bind the plot number and invasive list together is to make the RICH_plot_nums have the same column names as RICH_invlist2, then to bind the rowse (rbind) together.
 
 ```{r m15_3, echo = TRUE, results = 'hide'}
-names(RICH_invlist2)
+names(RICH_invlist_wide)
 RICH_plot_nums$Latin_Name <- as.character("Number of plots")
 RICH_plot_nums$Common <- as.character(NA)
 RICH_plot_nums$Year_added <- as.numeric(NA)
 
-RICH_plot_nums <- RICH_plot_nums[ , names(RICH_invlist2)] #using names from RICH_invlist2 to order columns the same
+RICH_plot_nums <- RICH_plot_nums[ , names(RICH_invlist_wide)] #using names from RICH_invlist2 to order columns the same
 
-RICH_invtbl <- rbind(RICH_invlist2, RICH_plot_nums)
+RICH_invtbl <- rbind(RICH_invlist_wide, RICH_plot_nums)
 
 write.csv(RICH_invtbl, "./tables/RICH_invspp_plot_freq_M15.csv", row.names = FALSE)
 ```
