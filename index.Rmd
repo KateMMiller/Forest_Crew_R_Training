@@ -1739,9 +1739,6 @@ writeOGR(RICH_stock_shp2, dsn = "./shapefiles", layer = "RICH_stock_M9", driver 
 </details>
 </br>
 
-
-
-
 ### MIDN Metrics 10-15{.tabset}
 This tab covers the next 5 metrics related to composition and invasive species. Go ahead and load the packages and import the data. I updated the joinQuadData() function on 7/2/20, so please reinstall the forestMIDN package to make sure you get the same results I do.
 ```{r, m10_1,echo=T, results='hide', message=FALSE, eval=FALSE}
@@ -1753,16 +1750,20 @@ library(rgdal)
 importCSV("../data")
 
 ```
-<details open><summary class='drop'>10. Regeneration by composition</summary>
+<details open><summary class='drop'>10. Regeneration by composition  <b style="color:red">Updated 7-8-20</b></summary>
 For this metric, we're going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we'll include all species, including exotic and low canopy. We need to limit the pie charts to 12 or less, because we start to run out of distinct colors and it's harder to distinguish patterns. 
 ```{r, m10_2, echo=T, results = 'hide'}
 RICH_reg_spp <- joinRegenData(park = 'RICH', from = 2016, to = 2019, 
                               speciesType = 'all', canopyForm = 'all')
 ```
 
-The chunk below is to figure out which species are the most common, and which ones to lump.
+The chunk below is to figure out which species are the most common, and which ones to lump. We're only interested in species that have at least one seedling or sapling count (ie don't want to consider species with only cover), so first we want to filter out species that don't have counts (thanks for catching Jamie!).
 ```{r, m10_3, echo=T, results = 'hide'}
-sppdf <- as.data.frame(table(RICH_reg_spp$Latin_Name)) %>% arrange(desc(Freq))
+names(RICH_reg_spp)
+
+RICH_reg_spp2 <- RICH_reg_spp %>% mutate(reg_den = seed.den + sap.den) %>% filter(reg_den > 0)
+length(unique(RICH_reg_spp2$Plot_Number)) 
+sppdf <- as.data.frame(table(RICH_reg_spp2$Latin_Name)) %>% arrange(desc(Freq))
 #View(sppdf) #Ilex opaca for the win!
 ```
 
@@ -1782,7 +1783,7 @@ make_sppcode <- function(df){
   return(df2)
 }
 
-RICH_reg_spp <- make_sppcode(RICH_reg_spp) 
+RICH_reg_spp2 <- make_sppcode(RICH_reg_spp2) 
 
 ```
 
@@ -1805,83 +1806,95 @@ make_spp_list <- function(df){
       vec <- df %>% select(sppcode) %>% unique()
       }
 
-lowcan_spp <- RICH_reg_spp %>% 
+lowcan_spp <- RICH_reg_spp2 %>% 
                 filter(Canopy_Exclusion == TRUE) %>% 
                 filter(Latin_Name != "No species recorded") %>%
                 filter(Exotic == FALSE) %>% 
                 make_spp_list()
 
 
-exotic_spp <- RICH_reg_spp %>% filter(Exotic == TRUE) %>% make_spp_list()
+exotic_spp <- RICH_reg_spp2 %>% filter(Exotic == TRUE) %>% make_spp_list()
               
 exotic_spp # No exotic tree species in RICH regen! I won't include this in sppgroup then.
 
-carya_spp <- RICH_reg_spp %>% filter(genus == "Carya") %>% make_spp_list()
+carya_spp <- RICH_reg_spp2 %>% filter(genus == "Carya") %>% make_spp_list()
 
-frax_spp <-  RICH_reg_spp %>% filter(genus == "Fraxinus") %>% make_spp_list()
+frax_spp <-  RICH_reg_spp2 %>% filter(genus == "Fraxinus") %>% make_spp_list()
                
-pinus_spp <- RICH_reg_spp %>% filter(genus == "Pinus") %>% make_spp_list()
+pinus_spp <- RICH_reg_spp2 %>% filter(genus == "Pinus") %>% make_spp_list()
 
-querc_spp <- RICH_reg_spp %>% filter(genus == "Quercus") %>% make_spp_list()
+querc_spp <- RICH_reg_spp2 %>% filter(genus == "Quercus") %>% make_spp_list()
 
-ulmus_spp <- RICH_reg_spp %>% filter(genus == "Ulmus") %>% make_spp_list()
+ulmus_spp <- RICH_reg_spp2 %>% filter(genus == "Ulmus") %>% make_spp_list()
 
 ```
-Next I want to take native species that aren't very common and put them in an other native group. The group_by and numplots is calculating the number of plots a species occurs on, so I can take species that occur in <10% of plots and group them into other native, while leaving more abundant species in their own group. Every park is going to be a little different. 
+Next I want to take native species that aren't very common and put them in an other native group. The group_by and numplots is calculating the number of plots a species occurs on, so I can take species that occur in <20% of plots and group them into other native, while leaving more abundant species in their own group. Every park is going to be a little different. You can change the % of plots threshold until you get the number of species groups where you want it. I originally used 30% as the cutoff, but after I removed species that didn't have counts, I ended up with room to add species groups. 
 
 ```{r, m10_6, echo=T, results = 'hide'}
 grped_spp <- rbind(lowcan_spp, carya_spp, frax_spp, pinus_spp, querc_spp, ulmus_spp)
 
-totnum_plots <- length(unique(RICH_reg_spp$Plot_Name))
+totnum_plots <- length(unique(RICH_reg_spp2$Plot_Name))
 
-other_nat <- RICH_reg_spp %>% group_by(sppcode) %>% 
-                              mutate(numplots = sum(!is.na(Latin_Name))/totnum_plots*100) %>% 
-                              ungroup() %>% 
-                              filter(!(sppcode %in% grped_spp$sppcode)) %>% 
-                              filter(Exotic == FALSE) %>% 
-                              filter(numplots <= 30) %>% #combining spp. in <30% of plots
-                              make_spp_list()
+other_nat <- RICH_reg_spp2 %>% group_by(sppcode) %>% 
+                               mutate(numplots = sum(!is.na(Latin_Name))/totnum_plots*100) %>% 
+                               ungroup() %>% 
+                               filter(!(sppcode %in% grped_spp$sppcode)) %>% 
+                               filter(Exotic == FALSE) %>% 
+                               filter(numplots <= 20) %>% #combining spp. in *CHANGED 7/8* <20% of plots instead of <30
+                               make_spp_list()
 
 # I split the filters up to make sure it worked properly, and because they were pulling from
 # different tables. 
 
-RICH_reg_spp <- RICH_reg_spp %>% mutate(sppgrp = case_when(sppcode %in% lowcan_spp$sppcode ~ paste0("LOWCAN"),
-                                                           sppcode %in% exotic_spp$sppcode ~ paste0("EXOSPP"),
-                                                           sppcode %in% carya_spp$sppcode ~ paste0("CARSPP"),
-                                                           sppcode %in% frax_spp$sppcode ~ paste0("FRASPP"),
-                                                           sppcode %in% pinus_spp$sppcode ~ paste0("PINSPP"),
-                                                           sppcode %in% querc_spp$sppcode ~ paste0("QUESPP"),
-                                                           sppcode %in% ulmus_spp$sppcode ~ paste0("ULMSPP"),
-                                                           sppcode %in% other_nat$sppcode ~ paste0("OTHNAT"),
-                                                           TRUE ~ paste0(sppcode) 
+RICH_reg_spp2 <- RICH_reg_spp2 %>% mutate(sppgrp = case_when(sppcode %in% lowcan_spp$sppcode ~ paste0("LOWCAN"),
+                                                             sppcode %in% exotic_spp$sppcode ~ paste0("EXOSPP"),
+                                                             sppcode %in% carya_spp$sppcode ~ paste0("CARSPP"),
+                                                             sppcode %in% frax_spp$sppcode ~ paste0("FRASPP"),
+                                                             sppcode %in% pinus_spp$sppcode ~ paste0("PINSPP"),
+                                                             sppcode %in% querc_spp$sppcode ~ paste0("QUESPP"),
+                                                             sppcode %in% ulmus_spp$sppcode ~ paste0("ULMSPP"),
+                                                             sppcode %in% other_nat$sppcode ~ paste0("OTHNAT"),
+                                                             TRUE ~ paste0(sppcode) 
                                                            ),
-                                        reg_den = seed.den + sap.den
+                                          reg_den = seed.den + sap.den
                                         )
 # The TRUE ~ paste0(sppcode) essentially says for any species that doesn't fit in one of the groups above,
 # assign the sppcode as its group (eg ACERUB in RICH)
 
-table(RICH_reg_spp$sppgrp) # made it down to 12 species groups. You may have to do some of this work by hand, 
-#and possibly using Excel to get your groupings down to 12 or fewer.
+table(RICH_reg_spp2$sppgrp) # made it down to 11 species groups. You may have to do some of this work by hand, 
+#and possibly using Excel to get your groupings down to 11 or fewer.
 
 # Now to combine rows of species in the same species group
-RICH_reg_spp2 <- RICH_reg_spp %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
-                                  summarize(reg_den = sum(reg_den, na.rm = TRUE))
+RICH_reg_spp3 <- RICH_reg_spp2 %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
+                                   summarize(reg_den = sum(reg_den, na.rm = TRUE))
+table(RICH_reg_spp3$sppgrp)
+
 ```
 
-Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output.
+Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output. Just in case I dropped plots when I ran filter(reg_den > 0) to get RICH_reg_spp2, I'm going do a left merge with RICH_loc_ev to make sure all the plots are included.
 
 ```{r, m10_7, echo=T, results = 'hide', warning=FALSE, message=FALSE, comment=FALSE}
-RICH_reg_wide <- RICH_reg_spp2 %>% 
+RICH_reg_wide <- RICH_reg_spp3 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %>% 
                     arrange(sppgrp) %>% 
                     pivot_wider(names_from = "sppgrp", 
                                 values_from = "reg_den", 
-                                values_fill = 0) %>% select(-NOSPE) %>% 
-                    ungroup()
+                                values_fill = 0) %>% #select(-NOSPE) %>% 
+                    ungroup() %>% 
+                    select(-Plot_Number, -X_Coord, -Y_Coord) #removing so they merge in with RICH_loc_ev
 
-coordinates(RICH_reg_wide) <- ~X_Coord + Y_Coord
-proj4string(RICH_reg_wide) <- CRS("+init=epsg:26918")
-writeOGR(RICH_reg_wide, dsn = './shapefiles', layer = 'RICH_reg_spp', 
+length(unique(RICH_reg_wide$Plot_Name)) #still 32, so didn't lose any plots in the filter(reg_den > 0) above. 
+
+RICH_loc_ev <- joinRegenData(park = "RICH", from = 2016, to = 2019) %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
+
+intersect(names(RICH_loc_ev), names(RICH_reg_wide))
+
+RICH_reg_wide2 <- merge(RICH_loc_ev, RICH_reg_wide, by = "Plot_Name", all.x = TRUE, all.y = TRUE)
+```
+```{r, m10_8, echo=T, results='hide', eval=F}
+coordinates(RICH_reg_wide2) <- ~X_Coord + Y_Coord
+proj4string(RICH_reg_wide2) <- CRS("+init=epsg:26918")
+writeOGR(RICH_reg_wide2, dsn = './shapefiles', layer = 'RICH_reg_spp', 
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 ```
 </details>
