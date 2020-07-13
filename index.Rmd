@@ -1419,7 +1419,7 @@ ggsave("./figures/SAHI_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 7-7-20</b></summary>
+<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 7-13-20</b></summary>
 Similar to the tree diameter distribution plot, the dataset we need for this figure will have a row for each cycle (1-3 cycles, and last 4 years) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
 
 I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4, and change the cycle to "last4yr", so I can use cycle as the grouping factor to summarize.
@@ -1482,6 +1482,7 @@ regen_plot <- ggplot(data = RICH_regen_sum, aes(x = size_class, y = avg_dens))+
                                        ymax = avg_dens + se_dens, x = size_class),
                                        color = "#696969", 
                                        width = 0.3, 
+                                       size = 0.3, #added 7/13
                                        position = position_dodge(0.9))+
                      facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                      labs(x = "Regeneration Density (cm)", y = "stems/ha")+
@@ -1605,7 +1606,7 @@ writeOGR(RICH_dbi_shp2, dsn = "./shapefiles", layer = "RICH_DBI_M6", driver = "E
 </details>
 </br>
 
-<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 7-7-20</b></summary>
+<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 7-13-20</b></summary>
 For this summary, we're going average the deer browse by each completed cycle and the last 4 years, and then graph the results as points with error bars in ggplot.  
 ```{r, c96,echo=T}
 RICH_dbi_c1.3 <- joinStandData(park = "RICH", from = 2009, to = 2018)
@@ -1633,6 +1634,7 @@ dbi_plot <- ggplot(data = RICH_dbi_sum, aes(x = cycle, y = mean_dbi))+
                                      ymax = mean_dbi + se_dbi, x = cycle),
                                      color = "#696969", 
                                      width = 0.2, 
+                                     size = 0.3, #added 7/13
                                      position = position_dodge(0.9))+
                    geom_point(size=2)+ #ordered so points are drawn on top of error bars
                    labs(x = NULL, y = "Average Deer Browse Impact")+
