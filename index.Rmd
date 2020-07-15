@@ -2065,7 +2065,7 @@ The approach for this metric is similar for metric 10 and 11. You'll need to det
 
 I'm going to use GETT, since there are a lot of invasive species in that park
 ```{r m14_1, results = 'hide', echo = TRUE}
-GETT_inv_pie <- joinQuadData(park = "RICH", from = 2016, to = 2019, speciesType = 'exotic')
+GETT_inv_pie <- joinQuadData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic')
 
 GETT_inv_pie <- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
 
