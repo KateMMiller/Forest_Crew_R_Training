@@ -1660,7 +1660,7 @@ ggsave("./figures/RICH_DBI_by_cycle_M7.jpg", dbi_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 7-7-20</b></summary>
+<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 7-15-20</b></summary>
 This summary will result in a bar chart of the mean stocking index for each cycle and the last 4 years, along with horizontal lines to indicate the stocking index thresholds. First we need to summarize the data using joinRegenData(). We also only want to include native canopy forming species.
 
 ```{r,c99, echo=T, results = 'hide'}
@@ -1701,7 +1701,7 @@ stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
                      geom_bar(stat = 'identity', fill = '#5F9EA0', width = 0.8)+
                      geom_errorbar(aes(ymin = mean_stock - se_stock, 
                                        ymax = mean_stock + se_stock, x = cycle), 
-                                   color = "#303030", 
+                                   color = "#696969", 
                                    width = 0.2, 
                                    size = 0.3)+
                      labs(x = NULL, y = "Mean Stocking Index (per sq.m)")+
