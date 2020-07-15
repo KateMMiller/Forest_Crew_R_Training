@@ -2060,12 +2060,12 @@ write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FAL
 </details>
 </br>
 
-<details open><summary class='drop'>14. Invasive cover by species <b style="color:red">Updated 7-8-20</b></summary>
+<details open><summary class='drop'>14. Invasive cover by species <b style="color:red">Updated 7-15-20</b></summary>
 The approach for this metric is similar for metric 10 and 11. You'll need to determine the most common invasive species, which will have their own pie color. If you have >12 species, then you'll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We're only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.
 
 I'm going to use GETT, since there are a lot of invasive species in that park
 ```{r m14_1, results = 'hide', echo = TRUE}
-GETT_inv_pie <- joinQuadData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic')
+GETT_inv_pie <- joinQuadData(park = "RICH", from = 2016, to = 2019, speciesType = 'exotic')
 
 GETT_inv_pie <- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
 
@@ -2076,8 +2076,8 @@ top_spp
 GETT_inv_pie$sppcode[GETT_inv_pie$sppcode == "LON-"]<-"LONSPP"
 sort(unique(GETT_inv_pie$sppcode))
 ```
-There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 & 12. 
-
+There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 & 12. </br>
+<b style="color:red">Updated code chunk (see GETT_inv_pie2) 7-15-20</b>
 ```{r m14_2, results = 'hide', echo=TRUE}
 inv_herb <- data.frame(sppcode = c("DUCIND", "PERLON", "ALLPET"))
 inv_woody <- data.frame(sppcode = c("DIOOPP", "CELORB", "EUOALA", "ELAANG", "ELASPP", "ELAUMB", "LONSPP"))
@@ -2091,7 +2091,8 @@ GETT_inv_pie <- GETT_inv_pie %>% mutate(sppgrp = case_when(sppcode %in% inv_herb
 
 # Summarize so only 1 sppgrp per plot
 GETT_inv_pie2 <- GETT_inv_pie %>% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
-                                  summarize(avg.cover = sum(avg.cover, na.rm=T))
+                                  summarize(avg.cover = sum(avg.cover, na.rm=T)) %>% 
+                                  ungroup() # added 7/15
 
 
 ```

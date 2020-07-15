@@ -2669,9 +2669,9 @@ write.csv(RICH_inv_tbl, &quot;./tables/Invasive_cover_table_M13.csv&quot;, row.n
 </details>
 <p></br></p>
 <details open>
-<p><summary class="drop">14. Invasive cover by species <b style="color:red">Updated 7-8-20</b></summary> The approach for this metric is similar for metric 10 and 11. You’ll need to determine the most common invasive species, which will have their own pie color. If you have &gt;12 species, then you’ll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We’re only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.</p>
+<p><summary class="drop">14. Invasive cover by species <b style="color:red">Updated 7-15-20</b></summary> The approach for this metric is similar for metric 10 and 11. You’ll need to determine the most common invasive species, which will have their own pie color. If you have &gt;12 species, then you’ll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We’re only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.</p>
 <p>I’m going to use GETT, since there are a lot of invasive species in that park</p>
-<pre class="r"><code>GETT_inv_pie &lt;- joinQuadData(park = &quot;GETT&quot;, from = 2016, to = 2019, speciesType = &#39;exotic&#39;)
+<pre class="r"><code>GETT_inv_pie &lt;- joinQuadData(park = &quot;RICH&quot;, from = 2016, to = 2019, speciesType = &#39;exotic&#39;)
 
 GETT_inv_pie &lt;- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
 
@@ -2681,7 +2681,7 @@ top_spp
 # Just want to rename LON- to LONSPP so cleaner
 GETT_inv_pie$sppcode[GETT_inv_pie$sppcode == &quot;LON-&quot;]&lt;-&quot;LONSPP&quot;
 sort(unique(GETT_inv_pie$sppcode))</code></pre>
-<p>There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 &amp; 12.</p>
+<p>There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 &amp; 12. </br> <b style="color:red">Updated code chunk (see GETT_inv_pie2) 7-15-20</b></p>
 <pre class="r"><code>inv_herb &lt;- data.frame(sppcode = c(&quot;DUCIND&quot;, &quot;PERLON&quot;, &quot;ALLPET&quot;))
 inv_woody &lt;- data.frame(sppcode = c(&quot;DIOOPP&quot;, &quot;CELORB&quot;, &quot;EUOALA&quot;, &quot;ELAANG&quot;, &quot;ELASPP&quot;, &quot;ELAUMB&quot;, &quot;LONSPP&quot;))
 
@@ -2694,7 +2694,8 @@ GETT_inv_pie &lt;- GETT_inv_pie %&gt;% mutate(sppgrp = case_when(sppcode %in% in
 
 # Summarize so only 1 sppgrp per plot
 GETT_inv_pie2 &lt;- GETT_inv_pie %&gt;% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %&gt;% 
-                                  summarize(avg.cover = sum(avg.cover, na.rm=T))</code></pre>
+                                  summarize(avg.cover = sum(avg.cover, na.rm=T)) %&gt;% 
+                                  ungroup() # added 7/15</code></pre>
 <p>Now we need to take the sppcode and spread it wide and make into a shapefile.</p>
 <pre class="r"><code>GETT_inv_pwide &lt;- GETT_inv_pie2 %&gt;% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, avg.cover) %&gt;% 
                                     pivot_wider(names_from = sppgrp,
@@ -3808,7 +3809,7 @@ writeOGR(RICH_inv_wide, dsn = &#39;./shapefiles&#39;, layer = &#39;RICH_inv_cycl
 
 RICH_inv_tbl &lt;- RICH_inv_wide@data
 write.csv(RICH_inv_tbl, &quot;./tables/Invasive_cover_table_M13.csv&quot;, row.names = FALSE)
-GETT_inv_pie &lt;- joinQuadData(park = &quot;GETT&quot;, from = 2016, to = 2019, speciesType = &#39;exotic&#39;)
+GETT_inv_pie &lt;- joinQuadData(park = &quot;RICH&quot;, from = 2016, to = 2019, speciesType = &#39;exotic&#39;)
 
 GETT_inv_pie &lt;- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
 
@@ -3830,7 +3831,8 @@ GETT_inv_pie &lt;- GETT_inv_pie %&gt;% mutate(sppgrp = case_when(sppcode %in% in
 
 # Summarize so only 1 sppgrp per plot
 GETT_inv_pie2 &lt;- GETT_inv_pie %&gt;% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %&gt;% 
-                                  summarize(avg.cover = sum(avg.cover, na.rm=T))
+                                  summarize(avg.cover = sum(avg.cover, na.rm=T)) %&gt;% 
+                                  ungroup() # added 7/15
 
 
 
