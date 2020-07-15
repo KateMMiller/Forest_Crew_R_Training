@@ -2414,7 +2414,7 @@ library(rgdal)
 
 importCSV(&quot;../data&quot;)</code></pre>
 <details open>
-<p><summary class="drop">10. Regeneration by composition <b style="color:red">Updated 7-8-20</b></summary> For this metric, we’re going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we’ll include all species, including exotic and low canopy. We need to limit the pie charts to 12 or less, because we start to run out of distinct colors and it’s harder to distinguish patterns.</p>
+<p><summary class="drop">10. Regeneration by composition <b style="color:red">Updated 7-15-20</b></summary> For this metric, we’re going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we’ll include all species, including exotic and low canopy. We need to limit the pie charts to 12 or less, because we start to run out of distinct colors and it’s harder to distinguish patterns.</p>
 <pre class="r"><code>RICH_reg_spp &lt;- joinRegenData(park = &#39;RICH&#39;, from = 2016, to = 2019, 
                               speciesType = &#39;all&#39;, canopyForm = &#39;all&#39;)</code></pre>
 <p>The chunk below is to figure out which species are the most common, and which ones to lump. We’re only interested in species that have at least one seedling or sapling count (ie don’t want to consider species with only cover), so first we want to filter out species that don’t have counts (thanks for catching Jamie!).</p>
@@ -2509,6 +2509,7 @@ RICH_reg_spp3 &lt;- RICH_reg_spp2 %&gt;% group_by(Plot_Name, Plot_Number, X_Coor
                                    summarize(reg_den = sum(reg_den, na.rm = TRUE))
 table(RICH_reg_spp3$sppgrp)</code></pre>
 <p>Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output. Just in case I dropped plots when I ran filter(reg_den &gt; 0) to get RICH_reg_spp2, I’m going do a left merge with RICH_loc_ev to make sure all the plots are included.</p>
+<p><b style="color:red">Updated Code Chunk (see RICH_loc_ev line) 7-15-20</b></p>
 <pre class="r"><code>RICH_reg_wide &lt;- RICH_reg_spp3 %&gt;% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %&gt;% 
                     arrange(sppgrp) %&gt;% 
@@ -2520,9 +2521,7 @@ table(RICH_reg_spp3$sppgrp)</code></pre>
 
 length(unique(RICH_reg_wide$Plot_Name)) #still 32, so didn&#39;t lose any plots in the filter(reg_den &gt; 0) above. 
 
-RICH_loc_ev &lt;- joinRegenData(park = &quot;RICH&quot;, from = 2016, to = 2019) %&gt;% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
-
-intersect(names(RICH_loc_ev), names(RICH_reg_wide))
+RICH_loc_ev &lt;- joinLocEvent(park = &quot;RICH&quot;, from = 2016, to = 2019) %&gt;% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
 
 RICH_reg_wide2 &lt;- merge(RICH_loc_ev, RICH_reg_wide, by = &quot;Plot_Name&quot;, all.x = TRUE, all.y = TRUE)</code></pre>
 <pre class="r"><code>coordinates(RICH_reg_wide2) &lt;- ~X_Coord + Y_Coord
@@ -3675,9 +3674,7 @@ RICH_reg_wide &lt;- RICH_reg_spp3 %&gt;%
 
 length(unique(RICH_reg_wide$Plot_Name)) #still 32, so didn&#39;t lose any plots in the filter(reg_den &gt; 0) above. 
 
-RICH_loc_ev &lt;- joinRegenData(park = &quot;RICH&quot;, from = 2016, to = 2019) %&gt;% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
-
-intersect(names(RICH_loc_ev), names(RICH_reg_wide))
+RICH_loc_ev &lt;- joinLocEvent(park = &quot;RICH&quot;, from = 2016, to = 2019) %&gt;% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
 
 RICH_reg_wide2 &lt;- merge(RICH_loc_ev, RICH_reg_wide, by = &quot;Plot_Name&quot;, all.x = TRUE, all.y = TRUE)
 coordinates(RICH_reg_wide2) &lt;- ~X_Coord + Y_Coord

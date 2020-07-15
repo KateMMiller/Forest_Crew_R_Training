@@ -1752,7 +1752,7 @@ library(rgdal)
 importCSV("../data")
 
 ```
-<details open><summary class='drop'>10. Regeneration by composition  <b style="color:red">Updated 7-8-20</b></summary>
+<details open><summary class='drop'>10. Regeneration by composition  <b style="color:red">Updated 7-15-20</b></summary>
 For this metric, we're going to use joinRegenData() to pull in the last 4 years of regeneration data for RICH. This time, we'll include all species, including exotic and low canopy. We need to limit the pie charts to 12 or less, because we start to run out of distinct colors and it's harder to distinguish patterns. 
 ```{r, m10_2, echo=T, results = 'hide'}
 RICH_reg_spp <- joinRegenData(park = 'RICH', from = 2016, to = 2019, 
@@ -1875,6 +1875,7 @@ table(RICH_reg_spp3$sppgrp)
 
 Now that I have the species groupings the way I want them, I can spread on sppgroup and get the final shapefile output. Just in case I dropped plots when I ran filter(reg_den > 0) to get RICH_reg_spp2, I'm going do a left merge with RICH_loc_ev to make sure all the plots are included.
 
+<b style="color:red">Updated Code Chunk (see RICH_loc_ev line) 7-15-20</b>
 ```{r, m10_7, echo=T, results = 'hide', warning=FALSE, message=FALSE, comment=FALSE}
 RICH_reg_wide <- RICH_reg_spp3 %>% 
                     select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, reg_den) %>% 
@@ -1887,9 +1888,7 @@ RICH_reg_wide <- RICH_reg_spp3 %>%
 
 length(unique(RICH_reg_wide$Plot_Name)) #still 32, so didn't lose any plots in the filter(reg_den > 0) above. 
 
-RICH_loc_ev <- joinRegenData(park = "RICH", from = 2016, to = 2019) %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
-
-intersect(names(RICH_loc_ev), names(RICH_reg_wide))
+RICH_loc_ev <- joinLocEvent(park = "RICH", from = 2016, to = 2019) %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
 
 RICH_reg_wide2 <- merge(RICH_loc_ev, RICH_reg_wide, by = "Plot_Name", all.x = TRUE, all.y = TRUE)
 ```
