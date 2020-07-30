@@ -1503,7 +1503,7 @@ print(regen_plot)
 
 ```
 
-Now save ggplot graph as jpeg. 
+Now to save ggplot graph as jpeg. 
 
 ```{r, c87,echo=T}
 ggsave("./figures/RICH_Regen_size_class_M3.jpg", regen_plot, dpi = 300, 
