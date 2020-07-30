@@ -1711,7 +1711,7 @@ stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
                            axis.title = element_text(size = 9))+
                      theme_FVM()+
                      geom_hline(yintercept = 1.989, lty = 2, lwd = 1, color = '#CD5C5C')+ #IndianRed
-                     geom_hline(yintercept = 7.958, lty = 3, lwd = 1, color = '#32CD32') #LimeGreen
+                     geom_hline(yintercept = 7.958, lty = 3, lwd = 1, color = '#0E5D2C') #Revised 7/30/20
 stock_plot
 ```
 
