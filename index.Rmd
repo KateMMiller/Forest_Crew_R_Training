@@ -1606,7 +1606,7 @@ writeOGR(RICH_dbi_shp2, dsn = "./shapefiles", layer = "RICH_DBI_M6", driver = "E
 </details>
 </br>
 
-<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 7-13-20</b></summary>
+<details open><summary class='drop'>7. DBI by cycle figure <b style="color:red">Updated 7-30-20</b></summary>
 For this summary, we're going average the deer browse by each completed cycle and the last 4 years, and then graph the results as points with error bars in ggplot.  
 ```{r, c96,echo=T}
 RICH_dbi_c1.3 <- joinStandData(park = "RICH", from = 2009, to = 2018)
@@ -1628,6 +1628,7 @@ sort(unique(RICH_dbi_sum$cycle)) # they're in the right order, so don't need to 
 Note with the deer browse index is that we didn't start collecting it until 2009, which means only 2 of the 4 panels in cycle 1 have data in RICH. That's why there are only 16 plots in cycle 1 when you print RICH_dbi_sum. It's still worth using cycle 1, but we need to add that caveat to the figure caption.
 Now we're going to plot the data.
 
+<b style="color:red">Code Chunk Updated 7-30-20</b>
 ```{r, c97,echo = T}
 dbi_plot <- ggplot(data = RICH_dbi_sum, aes(x = cycle, y = mean_dbi))+
                    geom_errorbar(aes(ymin = mean_dbi - se_dbi, 
@@ -1642,8 +1643,8 @@ dbi_plot <- ggplot(data = RICH_dbi_sum, aes(x = cycle, y = mean_dbi))+
                          axis.text = element_text(size = 8), 
                          axis.title = element_text(size = 9))+
                    scale_x_discrete(labels= c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
-                   scale_y_continuous(limits = c(1.5,5.5), breaks = c(2, 3, 4, 5), 
-                                      labels = c("Low", "Moderate", "High", "Severe"))+  
+                   scale_y_continuous(limits = c(0.5,5.5), breaks = c(1, 2, 3, 4, 5), #revisd 7/30/20
+                                      labels = c("No Impact", "Low", "Moderate", "High", "Severe"))+  
                    theme_FVM()
                    
   
