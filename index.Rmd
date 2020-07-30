@@ -1262,7 +1262,7 @@ writeOGR(RICHreg_4yr_sum, dsn = "./shapefiles", layer = "RICH_regen_by_size_clas
 </details>
 </br>
 
-<details open><summary class='drop'>2. Tree diameter distribution figure <b style="color:red">Updated 7-7-20</b></summary>
+<details open><summary class='drop'>2. Tree diameter distribution figure <b style="color:red">Updated 7-30-20</b></summary>
 Now I'm going to show you all the code to produce the tree diameter distribution plot from Day 3 > forestMIDN > Tree diameter distribution. The dataset we need for the figure will have a row for each cycle (1-3 cycles) plus the last 4 years of data (if that differs from cycle 3 year range) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
 
 First we need to compile the tree diameter distribution data using sumTreeDBHDist(). I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4.
@@ -1324,6 +1324,7 @@ head(RICH_tree_dist_sum)
 ```
 
 Now to plot the results, with each cycle getting it's own plot using the facet_wrap function in ggplot2.
+<b style="color:red">Updated Code Chunk (see labs() line) 7-30-20</b>
 ```{r,c80, echo=T}
 # Set up labels for facet wrap
 cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3', 'last4yr' = "Last 4 yrs: 2016-2019")
@@ -1338,7 +1339,7 @@ tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_
                                        size = 0.3,
                                        position = position_dodge(0.9))+
                          facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
-                         labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
+                         labs(x = "Tree Diameter Class (cm)", y = "stems/ha")+ #revised 7-30-20
                          theme(axis.text = element_text(size = 6), # change axis label size
                                strip.text = element_text(size = 8), # change facet text size
                                axis.title = element_text(size = 9), # change axis title size
@@ -1358,7 +1359,7 @@ ggsave("./figures/RICH_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>2. Tree diameter distribution figure for NCBN park <b style="color:red">Updated 7-7-20</b></summary>
+<details open><summary class='drop'>2. Tree diameter distribution figure for NCBN park <b style="color:red">Updated 7-30-20</b></summary>
 ```{r,c76SAHI, echo=T, results='hide'}
 # In SAHI, cycle 1 = 2008-2011, cycle 2 = 2012-2015, cycle 3 = 2016-2019
 SAHI_tree_dist <- sumTreeDBHDist(park = "SAHI", status = 'live', 
@@ -1399,7 +1400,7 @@ tree_dist_plot <- ggplot(data = SAHI_tree_dist_sum, aes(x = size_class, y = avg_
                                        size = 0.3,
                                        position = position_dodge(0.9))+
                          facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
-                         labs(x = "Tree Diameter Distribution (cm)", y = "stems/ha")+
+                         labs(x = "Tree Diameter Class (cm)", y = "stems/ha")+ #revised 7/20/20
                          theme(axis.text = element_text(size = 6), # change axis label size
                                strip.text = element_text(size = 8), # change facet text size
                                axis.title = element_text(size = 9), # change axis title size
@@ -1419,7 +1420,7 @@ ggsave("./figures/SAHI_Tree_diam_dist_M2.jpg", tree_dist_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 7-13-20</b></summary>
+<details open><summary class='drop'>3. Regeneration by size class figure <b style="color:red">Updated 7-30-20</b></summary>
 Similar to the tree diameter distribution plot, the dataset we need for this figure will have a row for each cycle (1-3 cycles, and last 4 years) and size_class combination, a column for average density by cycle/size class, standard error for each cycle/size class and the number of plots used to calculate the average and standard error.
 
 I'm first going to compile the data for cycle 1 to 3, then I'll compile the last 4 years (2016-2019), which are across cycle 3 and 4, and change the cycle to "last4yr", so I can use cycle as the grouping factor to summarize.
@@ -1469,7 +1470,7 @@ head(RICH_regen_sum)
 ```
 
 The data are ready to plot.
-
+<b style="color:red">Updated Code Chunk 7-30-20</b>
 ```{r,c86, echo=T}
 
 # Set up labels for facet wrap
@@ -1485,7 +1486,7 @@ regen_plot <- ggplot(data = RICH_regen_sum, aes(x = size_class, y = avg_dens))+
                                        size = 0.3, #added 7/13
                                        position = position_dodge(0.9))+
                      facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
-                     labs(x = "Regeneration Density (cm)", y = "stems/ha")+
+                     labs(x = "Regeneration Size Class (cm)", y = "stems/sq.m")+ #revised 7-30-20
                      theme(axis.text = element_text(size = 6), 
                            strip.text = element_text(size = 8), 
                            axis.title = element_text(size = 9),
@@ -1660,7 +1661,7 @@ ggsave("./figures/RICH_DBI_by_cycle_M7.jpg", dbi_plot, dpi = 300,
 </details>
 </br>
 
-<details open><summary class='drop'>8. Mean stocking index by cycle <b style="color:red">Updated 7-15-20</b></summary>
+<details open><summary class='drop'>8. Average stocking index by cycle <b style="color:red">Updated 7-30-20</b></summary>
 This summary will result in a bar chart of the mean stocking index for each cycle and the last 4 years, along with horizontal lines to indicate the stocking index thresholds. First we need to summarize the data using joinRegenData(). We also only want to include native canopy forming species.
 
 ```{r,c99, echo=T, results = 'hide'}
@@ -1695,7 +1696,7 @@ RICH_stock_final
 ```
 
 Results are ready to plot.
-
+<b style="color:red">Updated Code Chunk 7-30-20</b>
 ```{r,c102, echo=T}
 stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
                      geom_bar(stat = 'identity', fill = '#5F9EA0', width = 0.8)+
@@ -1704,7 +1705,7 @@ stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
                                    color = "#696969", 
                                    width = 0.2, 
                                    size = 0.3)+
-                     labs(x = NULL, y = "Mean Stocking Index (per sq.m)")+
+                     labs(x = NULL, y = "Average Stocking Index (per sq.m)")+ #revised 7-30-20
                      scale_x_discrete(labels = c("Cycle 1", "Cycle 2", "Cycle 3", "Last 4 Years"))+
                      theme(axis.text = element_text(size = 8),
                            axis.title = element_text(size = 9))+
