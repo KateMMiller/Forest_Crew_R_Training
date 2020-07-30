@@ -1331,12 +1331,11 @@ cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3',
 
 # Make ggplot graph
 tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_dens))+
-                         geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
+                         geom_bar(stat = 'identity', fill = '#82B07A')+ #revised 7/30/20
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
                                        color = "#303030", 
                                        width = 0.5, 
-                                       size = 0.3,
                                        position = position_dodge(0.9))+
                          facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                          labs(x = "Tree Diameter Class (cm)", y = "stems/ha")+ #revised 7-30-20
@@ -1392,7 +1391,7 @@ cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3')
 
 # Make ggplot graph
 tree_dist_plot <- ggplot(data = SAHI_tree_dist_sum, aes(x = size_class, y = avg_dens))+
-                         geom_bar(stat = 'identity', fill = '#2E8B57')+ #hexcode for SeaGreen
+                         geom_bar(stat = 'identity', fill = '#82B07A')+ #revised 7/30/20
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
                                        color = "#303030", 
@@ -1478,7 +1477,7 @@ cycle_names<-c('Cycle1' = "Cycle 1", 'Cycle2' = 'Cycle 2', 'Cycle3' = 'Cycle 3',
 
 # Make ggplot graph
 regen_plot <- ggplot(data = RICH_regen_sum, aes(x = size_class, y = avg_dens))+
-                     geom_bar(stat = 'identity', fill = '#5F9EA0')+ #hexcode for CadetBlue
+                     geom_bar(stat = 'identity', fill = '#8FA7BE')+ #revised hexcode 7-30-20
                      geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                        ymax = avg_dens + se_dens, x = size_class),
                                        color = "#696969", 
@@ -1699,7 +1698,7 @@ Results are ready to plot.
 <b style="color:red">Updated Code Chunk 7-30-20</b>
 ```{r,c102, echo=T}
 stock_plot <- ggplot(data = RICH_stock_final, aes(x = cycle, y = mean_stock))+
-                     geom_bar(stat = 'identity', fill = '#5F9EA0', width = 0.8)+
+                     geom_bar(stat = 'identity', fill = '#8FA7BE', width = 0.8)+
                      geom_errorbar(aes(ymin = mean_stock - se_stock, 
                                        ymax = mean_stock + se_stock, x = cycle), 
                                    color = "#696969", 
