@@ -1550,7 +1550,8 @@ writeOGR(RICH_regen_map3, dsn = "./shapefiles", layer = "RICH_regen_density_by_c
 </details>
 </br>
 
-<details open><summary class='drop'>5. Seedlings, Saplings, Stocking Index table</summary>
+<details open><summary class='drop'>5. Seedlings, Saplings, Stocking Index table
+<b style="color:red">Updated 7-31-20</b></summary>
 For this summary, we're going to include all years, since we're mapping each plot. Our end result will have a row for each plot. The table will have 3 sets of columns that each have a column for cycle 1-4. The 3 sets of columns are seedling density, sapling density, and stocking index. 
 
 ```{r,c91, echo=T, results='hide'}
@@ -1572,10 +1573,13 @@ RICH_regen_tbl2 <- RICH_regen_tbl %>% group_by(Plot_Name, cycle) %>%
 
 Now we need to take the cycle column and reshape it wide so that there's a c1-4 column for each seed, sap, stock metric. One of the great features with pivot_wider() is you can reshape multiple columns at the same time (spread() can't)
 
+<b style="color:red">Updated Code Chunk 7-31-20</b>
 ```{r, c92,echo=T}
 RICH_regen_tbl3 <- RICH_regen_tbl2 %>% pivot_wider(names_from = "cycle", 
                                                    values_from = c("seed", "sap", "stock"),
-                                                   values_fill = NA)
+                                                   values_fill = NA) %>% 
+                   mutate(plot_num_char = as.character(substr(Plot_Name, 6, nchar(Plot_Name)))) %>%                                              select(Plot_Name, plot_num_char, everything())  
+head(RICH_regen_tbl3)
 ```
 ```{r, c93,echo=T, eval=FALSE}
 View(RICH_regen_tbl3)
@@ -2058,7 +2062,7 @@ writeOGR(RICH_inv_wide, dsn = './shapefiles', layer = 'RICH_inv_cycle',
 The shapefile we generated in metric 12 has the same information that we'll provide in this metric, but as a table. To save time, I'll just take the data from the shapefile and save it as a csv. When you create spatial dataframes in R, the data (eg think if this as the attribute table in GIS) can be accessed via the data slot, which you use \@data to access. If you're starting from scratch, just run the code for metric 12 up until you create RICH_inv_wide. Before converting to shapefile, save the data frame as a csv.  
 ```{r m13_1, results = 'hide', echo=TRUE}
 
-RICH_inv_tbl <- RICH_inv_wide@data
+RICH_inv_tbl <- RICH_inv_wide@data #The plot number is padded here. 
 write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FALSE)
 ```
 </details>

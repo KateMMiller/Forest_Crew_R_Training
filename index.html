@@ -508,7 +508,7 @@ var Th=function(a,b){var c=setTimeout(function(){c=0;b({tcString:"tcunavailable"
 "error"===d.cmpStatus)d.tcString="tcunavailable";Sh(a,"removeEventListener",null,d.listenerId);c&&(clearTimeout(c),c=0,b(d))}})},Sh=function(a,b,c,d){c||(c=function(){});if("function"===typeof a.i.__tcfapi){var e=a.i.__tcfapi;e(b,2,c,d)}else if(Uh(a)){Vh(a);var f=++a.ja;a.F[f]=c;if(a.h){var h={};a.h.postMessage((h.__tcfapiCall={command:b,version:2,callId:f,parameter:d},h),"*")}}else c({},!1)},Uh=function(a){if(a.h)return a.h;var b;a:{for(var c=a.i,d=0;50>d;++d){var e;try{e=!(!c.frames||!c.frames.__tcfapiLocator)}catch(k){e=
 !1}if(e){b=c;break a}var f;b:{try{var h=c.parent;if(h&&h!=c){f=h;break b}}catch(k){}f=null}if(!(c=f))break}b=null}a.h=b;return a.h},Vh=function(a){a.o||(a.o=function(b){try{var c,d;"string"===typeof b.data?d=JSON.parse(b.data):d=b.data;c=d.__tcfapiReturn;a.F[c.callId](c.returnValue,c.success)}catch(e){}},Jh(a.i,a.o))};function Wh(){var a=K.tcf||{};return K.tcf=a}var Xh=function(){var a=Wh();if(!a.active){a.active=!0;var b=new Rh(F,3E3),c;"function"===typeof F.__tcfapi?c="s":("function"===typeof b.i.__tcfapi||null!=Uh(b))&&(c="i");a.Ge=Fa();try{var d=!1;Th(b,function(){d=!0;a.cd=Fa()});d&&(a.cd=a.Ge)}catch(e){c="e"}a.type=c}},Yh=function(){var a=Wh();if(a.active&&void 0!==a.cd)return Number(a.cd-a.Ge)};
 var Zh=function(a){var b=rh(a,"/pagead/conversion_async.js");return b?b:-1===navigator.userAgent.toLowerCase().indexOf("firefox")?R("https://","http://","www.googleadservices.com/pagead/conversion_async.js"):"https://www.google.com/pagead/conversion_async.js"},$h=!1,ai=[],bi=["aw","dc"],ci=function(a){var b=F.google_trackConversion,c=a.gtm_onFailure;"function"==typeof b?b(a)||c():c()},di=function(){for(;0<ai.length;)ci(ai.shift())},ei=function(a){if(!$h){$h=!0;Qg();var b=function(){di();ai={push:ci}};
-cg()?b():oc(a,b,function(){di();$h=!1})}},fi=function(a){if(a){for(var b=[],c=0;c<a.length;++c){var d=a[c];d&&b.push({item_id:d.id,quantity:d.quantity,value:d.price,start_date:d.start_date,end_date:d.end_date})}return b}},gi=function(a,b,c,d){function e(){S("tc",Wh().type),S("tct",Yh());}function f(N){var ba=!0;ba&&ai.push(G)}var h=$f(a),k=b==C.da,l=h.B[0],m=h.B[1],r=void 0!==m,q=function(N){return d.getWithConfig(N)},u=void 0!=q(C.M)&&!1!==q(C.M),p=!1!==q(C.La),t=q(C.Ka)||q(C.Y),v=q(C.X),w=q(C.ia),y=q(C.ba),x=q(C.xa),A=Zh(x),B={prefix:t,domain:v,wb:w,flags:y};if(k){var z=q(C.ya)||{};p&&(vf(z[C.hb],!!z[C.K])&&Mf(bi,B),Jf(B),Of(["aw","dc"],B));q(C.ob)&&Qf();z[C.K]&&Nf(bi,z[C.K],z[C.jb],
+cg()?b():oc(a,b,function(){di();$h=!1})}},fi=function(a){if(a){for(var b=[],c=0;c<a.length;++c){var d=a[c];d&&b.push({item_id:d.id,quantity:d.quantity,value:d.price,start_date:d.start_date,end_date:d.end_date})}return b}},gi=function(a,b,c,d){function e(){}function f(N){var ba=!0;ba&&ai.push(G)}var h=$f(a),k=b==C.da,l=h.B[0],m=h.B[1],r=void 0!==m,q=function(N){return d.getWithConfig(N)},u=void 0!=q(C.M)&&!1!==q(C.M),p=!1!==q(C.La),t=q(C.Ka)||q(C.Y),v=q(C.X),w=q(C.ia),y=q(C.ba),x=q(C.xa),A=Zh(x),B={prefix:t,domain:v,wb:w,flags:y};if(k){var z=q(C.ya)||{};p&&(vf(z[C.hb],!!z[C.K])&&Mf(bi,B),Jf(B),Of(["aw","dc"],B));q(C.ob)&&Qf();z[C.K]&&Nf(bi,z[C.K],z[C.jb],
 !!z[C.ib],t);og(h,d);Gh(!1,u,a)}var E=!1===q(C.Rd)||!1===q(C.mb);if(!k||!r&&!E)if(!0===q(C.Ud)&&(r=!1),!1!==q(C.fa)||r){var G={google_conversion_id:l,google_remarketing_only:!r,onload_callback:d.D,gtm_onFailure:d.C,google_conversion_format:"3",google_conversion_color:"ffffff",google_conversion_domain:"",google_conversion_label:m,google_conversion_language:q(C.Na),google_conversion_value:q(C.ca),google_conversion_currency:q(C.ka),google_conversion_order_id:q(C.nb),google_user_id:q(C.rb),google_conversion_page_url:q(C.kb),
 google_conversion_referrer_url:q(C.lb),google_gtm:Fh()};r&&(G.google_transport_url=qh(x,"/"));G.google_restricted_data_processing=q(C.Ac);cg()&&(G.opt_image_generator=function(){return new Image},G.google_enable_display_cookie_match=!1);!1===q(C.fa)&&(G.google_allow_ad_personalization_signals=!1);G.google_read_gcl_cookie_opt_out=!p;p&&t&&(G.google_gcl_cookie_prefix=t);var L=function(){var N=q(C.Ad),ba={event:b};if(ta(N)){D(26);for(var ca=0;ca<N.length;++ca){var M=N[ca],J=q(M);void 0!==J&&(ba[M]=J)}return ba}var T=
 d.eventModel;if(!T)return null;n(T,ba);for(var V=0;V<C.Ld.length;++V)delete ba[C.Ld[V]];return ba}();L&&(G.google_custom_params=L);!r&&q(C.S)&&(G.google_gtag_event_data={items:q(C.S),value:q(C.ca)});if(r&&b==C.qa){G.google_conversion_merchant_id=q(C.ce);G.google_basket_feed_country=q(C.$d);G.google_basket_feed_language=q(C.ae);G.google_basket_discount=q(C.Wd);G.google_basket_transaction_type=b;G.google_disable_merchant_reported_conversions=!0===q(C.fe);cg()&&(G.google_disable_merchant_reported_conversions=
@@ -548,8 +548,7 @@ cookie_expires:"duration",levels:1},Yi={anonymize_ip:1,fatal:1,non_interaction:1
 "checkout_progress",C.qa,C.Zb,C.Xb,"set_checkout_option"],a)?b="ecommerce":0<=ua("generate_lead login search select_content share sign_up view_item view_item_list view_promotion view_search_results".split(" "),a)?b="engagement":"exception"===a&&(b="error");return b},Pi=function(a,b,c){a.hasOwnProperty(b)||(a[b]=c)},$i=function(a){if(ta(a)){for(var b=[],c=0;c<a.length;c++){var d=a[c];if(void 0!=d){var e=d.id,f=d.variant;void 0!=e&&void 0!=f&&b.push(String(e)+"."+String(f))}}return 0<b.length?b.join("!"):
 void 0}},Ji=function(a,b,c,d){var e=function(E){return d.getWithConfig(E)},f={},h={},k={},l=$i(e(C.pf));l&&Pi(h,"exp",l);var m=e("custom_map");if(Ta(m))for(var r in m)if(m.hasOwnProperty(r)&&/^(dimension|metric)\d+$/.test(r)&&void 0!=m[r]){var q=e(String(m[r]));void 0!==q&&Pi(h,r,q)}for(var u=Bh(d),p=0;p<u.length;++p){var t=u[p],v=e(t);if(Xi.hasOwnProperty(t))Ri(Xi[t],t,v,f);else if(Wi.hasOwnProperty(t))Ri(Wi[t],t,v,h);else if(Vi.hasOwnProperty(t))Ri(Vi[t],t,v,k);else if(/^(dimension|metric|content_group)\d+$/.test(t))Ri(1,
 t,v,h);else if("developer_id"===t){var w=Oa(v);w&&(h["&did"]=w);}else t===C.Y&&0>ua(u,C.ac)&&(k.cookieName=v+"_ga")}Pi(k,"cookieDomain","auto");Pi(h,"forceSSL",!0);Pi(f,"eventCategory",Zi(c));0<=ua(["view_item","view_item_list","view_promotion","view_search_results"],c)&&Pi(h,"nonInteraction",!0);"login"===c||"sign_up"===c||"share"===c?Pi(f,"eventLabel",e(C.vf)):"search"===c||"view_search_results"===
-c?Pi(f,"eventLabel",e(C.Ff)):"select_content"===c&&Pi(f,"eventLabel",e(C.bf));var y=f[C.ya]||{},x=y[C.hb];x||0!=x&&y[C.K]?k.allowLinker=!0:!1===x&&Pi(k,"useAmpClientId",!1);if(!1===e(C.af)||!1===e(C.Za))h.allowAdFeatures=!1;if(!1===e(C.fa)){var A="allowAdFeatures";h[A]=!1}k.name=b;h["&gtm"]=Fh(!0);h["&tc"]=Wh().type,
-h["&tct"]=Yh();h.hitCallback=d.D;Mc()&&(h["&gcs"]=Uc(),Tc(C.I)||(k.storage="none"),Tc(C.m)||(h.allowAdFeatures=!1,k.storeGac=!1));var B=e(C.xa)||e(C.uf)||$d("gtag.remote_config."+a+".url",2),z=e(C.rf)||$d("gtag.remote_config."+a+".dualId",2);if(B&&null!=lc){k._x_19=B;}z&&(k._x_20=z);f.va=h;f.sa=k;return f},Mi=function(a,b){function c(v){var w=
+c?Pi(f,"eventLabel",e(C.Ff)):"select_content"===c&&Pi(f,"eventLabel",e(C.bf));var y=f[C.ya]||{},x=y[C.hb];x||0!=x&&y[C.K]?k.allowLinker=!0:!1===x&&Pi(k,"useAmpClientId",!1);if(!1===e(C.af)||!1===e(C.Za))h.allowAdFeatures=!1;if(!1===e(C.fa)){var A="allowAdFeatures";h[A]=!1}k.name=b;h["&gtm"]=Fh(!0);h.hitCallback=d.D;Mc()&&(h["&gcs"]=Uc(),Tc(C.I)||(k.storage="none"),Tc(C.m)||(h.allowAdFeatures=!1,k.storeGac=!1));var B=e(C.xa)||e(C.uf)||$d("gtag.remote_config."+a+".url",2),z=e(C.rf)||$d("gtag.remote_config."+a+".dualId",2);if(B&&null!=lc){k._x_19=B;}z&&(k._x_20=z);f.va=h;f.sa=k;return f},Mi=function(a,b){function c(v){var w=
 n(v);w.list=v.list_name;w.listPosition=v.list_position;w.position=v.list_position||v.creative_slot;w.creative=v.creative_name;return w}function d(v){for(var w=[],y=0;v&&y<v.length;y++)v[y]&&w.push(c(v[y]));return w.length?w:void 0}function e(v){return{id:f(C.nb),affiliation:f(C.hf),revenue:f(C.ca),tax:f(C.ie),shipping:f(C.nf),coupon:f(C.jf),list:f(C.wc)||v}}for(var f=function(v){return b.getWithConfig(v)},h=f(C.S),k,l=0;h&&l<h.length&&!(k=h[l][C.wc]);l++);var m=f("custom_map");if(Ta(m))for(var r=
 0;h&&r<h.length;++r){var q=h[r],u;for(u in m)m.hasOwnProperty(u)&&/^(dimension|metric)\d+$/.test(u)&&void 0!=m[u]&&Pi(q,u,q[m[u]])}var p=null,t=f(C.lf);a===C.qa||a===C.Zb?p={action:a,pb:e(),Ra:d(h)}:a===C.Vb?p={action:"add",Ra:d(h)}:a===C.Xb?p={action:"remove",Ra:d(h)}:a===C.Ja?p={action:"detail",pb:e(k),Ra:d(h)}:a===C.wd?p={action:"impressions",Gg:d(h)}:"view_promotion"===a?p={action:"promo_view",ld:d(t)}:"select_content"===a&&t&&0<t.length?p={action:"promo_click",ld:d(t)}:"select_content"===a?p=
 {action:"click",pb:{list:f(C.wc)||k},Ra:d(h)}:a===C.fb||"checkout_progress"===a?p={action:"checkout",Ra:d(h),pb:{step:a===C.fb?1:f(C.Cd),option:f(C.he)}}:"set_checkout_option"===a&&(p={action:"checkout_option",pb:{step:f(C.Cd),option:f(C.he)}});p&&(p.Qh=f(C.ka));return p},aj={},Ki=function(a,b){var c=aj[a];aj[a]=n(b);if(!c)return!1;for(var d in b)if(b.hasOwnProperty(d)&&b[d]!==c[d])return!0;for(var e in c)if(c.hasOwnProperty(e)&&c[e]!==b[e])return!0;return!1};function bj(){var a=K;return a.gcq=a.gcq||new cj}
@@ -611,7 +610,7 @@ Z.a.gtagua=["google"],function(){(function(a){Z.__gtagua=a;Z.__gtagua.b="gtagua"
 
 
 var An={};An.macro=function(a){if(fk.Kc.hasOwnProperty(a))return fk.Kc[a]},An.onHtmlSuccess=fk.oe(!0),An.onHtmlFailure=fk.oe(!1);An.dataLayer=ae;An.callback=function(a){wd.hasOwnProperty(a)&&ra(wd[a])&&wd[a]();delete wd[a]};function Bn(){K[od.s]=An;Ja(xd,Z.a);zb=zb||fk;Ab=Mb}
-function Cn(){Bc.gtm_3pds=!0;Bc.gtag_cs_api=!0;K=F.google_tag_manager=F.google_tag_manager||{};Xh();if(K[od.s]){var a=K.zones;a&&a.unregisterChild(od.s);}else{for(var b=data.resource||{},c=b.macros||[],d=0;d<c.length;d++)sb.push(c[d]);for(var e=b.tags||[],f=0;f<e.length;f++)vb.push(e[f]);for(var h=b.predicates||[],k=0;k<h.length;k++)ub.push(h[k]);for(var l=b.rules||[],m=0;m<l.length;m++){for(var r=l[m],q={},u=0;u<r.length;u++)q[r[u][0]]=Array.prototype.slice.call(r[u],1);tb.push(q)}xb=Z;yb=Cl;Bn();ek();Cg=!1;Dg=0;if("interactive"==H.readyState&&!H.createEventObject||"complete"==H.readyState)Fg();
+function Cn(){Bc.gtm_3pds=!0;Bc.gtag_cs_api=!0;K=F.google_tag_manager=F.google_tag_manager||{};if(K[od.s]){var a=K.zones;a&&a.unregisterChild(od.s);}else{for(var b=data.resource||{},c=b.macros||[],d=0;d<c.length;d++)sb.push(c[d]);for(var e=b.tags||[],f=0;f<e.length;f++)vb.push(e[f]);for(var h=b.predicates||[],k=0;k<h.length;k++)ub.push(h[k]);for(var l=b.rules||[],m=0;m<l.length;m++){for(var r=l[m],q={},u=0;u<r.length;u++)q[r[u][0]]=Array.prototype.slice.call(r[u],1);tb.push(q)}xb=Z;yb=Cl;Bn();ek();Cg=!1;Dg=0;if("interactive"==H.readyState&&!H.createEventObject||"complete"==H.readyState)Fg();
 else{sc(H,"DOMContentLoaded",Fg);sc(H,"readystatechange",Fg);if(H.createEventObject&&H.documentElement.doScroll){var p=!0;try{p=!F.frameElement}catch(y){}p&&Gg()}sc(F,"load",Fg)}zj=!1;"complete"===H.readyState?Bj():sc(F,"load",Bj);a:{if(!Qd)break a;F.setInterval(Rd,
 864E5);}ud=(new Date).getTime();An.bootstrap=ud;}}
 (function(a){a()})(Cn);
@@ -2249,7 +2248,7 @@ writeOGR(RICH_regen_map3, dsn = &quot;./shapefiles&quot;, layer = &quot;RICH_reg
 </details>
 <p></br></p>
 <details open>
-<p><summary class="drop">5. Seedlings, Saplings, Stocking Index table</summary> For this summary, we’re going to include all years, since we’re mapping each plot. Our end result will have a row for each plot. The table will have 3 sets of columns that each have a column for cycle 1-4. The 3 sets of columns are seedling density, sapling density, and stocking index.</p>
+<p><summary class="drop">5. Seedlings, Saplings, Stocking Index table <b style="color:red">Updated 7-31-20</b></summary> For this summary, we’re going to include all years, since we’re mapping each plot. Our end result will have a row for each plot. The table will have 3 sets of columns that each have a column for cycle 1-4. The 3 sets of columns are seedling density, sapling density, and stocking index.</p>
 <pre class="r"><code>RICH_regen_tbl &lt;- joinRegenData(park = &quot;RICH&quot;, speciesType = &quot;native&quot;, canopyForm = &quot;canopy&quot;, 
                                 units = &quot;sq.m&quot;, from = 2007, to = 2019)
 
@@ -2263,9 +2262,25 @@ RICH_regen_tbl2 &lt;- RICH_regen_tbl %&gt;% group_by(Plot_Name, cycle) %&gt;%
                                                 stock = sum(stock, na.rm = TRUE)) %&gt;% # note the addition of stock here
                                       select(Plot_Name, cycle, seed, sap, stock)</code></pre>
 <p>Now we need to take the cycle column and reshape it wide so that there’s a c1-4 column for each seed, sap, stock metric. One of the great features with pivot_wider() is you can reshape multiple columns at the same time (spread() can’t)</p>
+<p><b style="color:red">Updated Code Chunk 7-31-20</b></p>
 <pre class="r"><code>RICH_regen_tbl3 &lt;- RICH_regen_tbl2 %&gt;% pivot_wider(names_from = &quot;cycle&quot;, 
                                                    values_from = c(&quot;seed&quot;, &quot;sap&quot;, &quot;stock&quot;),
-                                                   values_fill = NA)</code></pre>
+                                                   values_fill = NA) %&gt;% 
+                   mutate(plot_num_char = as.character(substr(Plot_Name, 6, nchar(Plot_Name)))) %&gt;%                                              select(Plot_Name, plot_num_char, everything())  
+head(RICH_regen_tbl3)</code></pre>
+<pre><code>## # A tibble: 6 x 14
+## # Groups:   Plot_Name [6]
+##   Plot_Name plot_num_char seed_Cycle1 seed_Cycle2 seed_Cycle3 seed_Cycle4
+##   &lt;chr&gt;     &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+## 1 RICH-015  015                0            0.417       0.25       0.0833
+## 2 RICH-016  016                0.0833       0           1.33       0.333 
+## 3 RICH-019  019                0.0833       0.167       0.167      0.167 
+## 4 RICH-020  020                0.583        0.25        0.25       0.25  
+## 5 RICH-063  063                0.5          0           0.167      0     
+## 6 RICH-064  064                0.0833       0           0          0     
+## # ... with 8 more variables: sap_Cycle1 &lt;dbl&gt;, sap_Cycle2 &lt;dbl&gt;,
+## #   sap_Cycle3 &lt;dbl&gt;, sap_Cycle4 &lt;dbl&gt;, stock_Cycle1 &lt;dbl&gt;, stock_Cycle2 &lt;dbl&gt;,
+## #   stock_Cycle3 &lt;dbl&gt;, stock_Cycle4 &lt;dbl&gt;</code></pre>
 <pre class="r"><code>View(RICH_regen_tbl3)</code></pre>
 <p>I’m still amazed by that. The spread() function could only do seed, sap or stock one at a time, then you had to merge them at the end. I was on the fence about switching to pivot_wider(), but now I think I’m sold. Now we just need to save the output as a csv, then open in Excel and add the finishing touches.</p>
 <pre class="r"><code>write.csv(RICH_regen_tbl3, &#39;./tables/Seedlings_saplings_stocking_table_M5.csv&#39;, row.names = FALSE)
@@ -2663,7 +2678,7 @@ writeOGR(RICH_inv_wide, dsn = &#39;./shapefiles&#39;, layer = &#39;RICH_inv_cycl
 <p></br></p>
 <details open>
 <p><summary class="drop">13. Invasive cover table</summary> The shapefile we generated in metric 12 has the same information that we’ll provide in this metric, but as a table. To save time, I’ll just take the data from the shapefile and save it as a csv. When you create spatial dataframes in R, the data (eg think if this as the attribute table in GIS) can be accessed via the data slot, which you use @data to access. If you’re starting from scratch, just run the code for metric 12 up until you create RICH_inv_wide. Before converting to shapefile, save the data frame as a csv.</p>
-<pre class="r"><code>RICH_inv_tbl &lt;- RICH_inv_wide@data
+<pre class="r"><code>RICH_inv_tbl &lt;- RICH_inv_wide@data #The plot number is padded here. 
 write.csv(RICH_inv_tbl, &quot;./tables/Invasive_cover_table_M13.csv&quot;, row.names = FALSE)</code></pre>
 </details>
 <p></br></p>
@@ -3484,7 +3499,9 @@ RICH_regen_tbl2 &lt;- RICH_regen_tbl %&gt;% group_by(Plot_Name, cycle) %&gt;%
 
 RICH_regen_tbl3 &lt;- RICH_regen_tbl2 %&gt;% pivot_wider(names_from = &quot;cycle&quot;, 
                                                    values_from = c(&quot;seed&quot;, &quot;sap&quot;, &quot;stock&quot;),
-                                                   values_fill = NA)
+                                                   values_fill = NA) %&gt;% 
+                   mutate(plot_num_char = as.character(substr(Plot_Name, 6, nchar(Plot_Name)))) %&gt;%                                              select(Plot_Name, plot_num_char, everything())  
+head(RICH_regen_tbl3)
 View(RICH_regen_tbl3)
 write.csv(RICH_regen_tbl3, &#39;./tables/Seedlings_saplings_stocking_table_M5.csv&#39;, row.names = FALSE)
 #row.names=FALSE removes the first unnamed column that&#39;s numbered.
@@ -3819,7 +3836,7 @@ writeOGR(RICH_inv_wide, dsn = &#39;./shapefiles&#39;, layer = &#39;RICH_inv_cycl
          driver = &#39;ESRI Shapefile&#39;, overwrite_layer = TRUE) 
 
 
-RICH_inv_tbl &lt;- RICH_inv_wide@data
+RICH_inv_tbl &lt;- RICH_inv_wide@data #The plot number is padded here. 
 write.csv(RICH_inv_tbl, &quot;./tables/Invasive_cover_table_M13.csv&quot;, row.names = FALSE)
 GETT_inv_pie &lt;- joinQuadData(park = &quot;GETT&quot;, from = 2016, to = 2019, speciesType = &#39;exotic&#39;)
 
