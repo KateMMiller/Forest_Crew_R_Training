@@ -1335,7 +1335,8 @@ tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
                                        color = "#303030", 
-                                       width = 0.5, 
+                                       width = 0.5,
+                                       size = 0.3,
                                        position = position_dodge(0.9))+
                          facet_wrap(~cycle, ncol = 4, labeller = as_labeller(cycle_names))+
                          labs(x = "Tree Diameter Class (cm)", y = "stems/ha")+ #revised 7-30-20
