@@ -1334,7 +1334,7 @@ tree_dist_plot <- ggplot(data = RICH_tree_dist_sum, aes(x = size_class, y = avg_
                          geom_bar(stat = 'identity', fill = '#82B07A')+ #revised 7/30/20
                          geom_errorbar(aes(ymin = avg_dens - se_dens, 
                                            ymax = avg_dens + se_dens, x = size_class),
-                                       color = "#303030", 
+                                       color = "#696969", 
                                        width = 0.5,
                                        size = 0.3,
                                        position = position_dodge(0.9))+
