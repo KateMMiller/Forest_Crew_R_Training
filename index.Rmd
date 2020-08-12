@@ -1877,7 +1877,8 @@ table(RICH_reg_spp2$sppgrp) # made it down to 11 species groups. You may have to
 
 # Now to combine rows of species in the same species group
 RICH_reg_spp3 <- RICH_reg_spp2 %>% group_by(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
-                                   summarize(reg_den = sum(reg_den, na.rm = TRUE))
+                                   summarize(reg_den = sum(reg_den, na.rm = TRUE),
+                                             .groups = 'keep') #added so dplyer doesn't give warning
 table(RICH_reg_spp3$sppgrp)
 
 ```
@@ -1900,6 +1901,7 @@ length(unique(RICH_reg_wide$Plot_Name)) #still 32, so didn't lose any plots in t
 RICH_loc_ev <- joinLocEvent(park = "RICH", from = 2016, to = 2019) %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord)
 
 RICH_reg_wide2 <- merge(RICH_loc_ev, RICH_reg_wide, by = "Plot_Name", all.x = TRUE, all.y = TRUE)
+
 ```
 ```{r, m10_8, echo=T, results='hide', eval=F}
 coordinates(RICH_reg_wide2) <- ~X_Coord + Y_Coord
@@ -1999,8 +2001,8 @@ writeOGR(RICH_tree_wide, dsn = './shapefiles', layer = 'RICH_tree_spp',
 </details>
 </br>
 
-<details open><summary class='drop'>12. Invasive cover by cycle <b style="color:red">Updated 7-15-20</b></summary>
-This metric is more straightforward than the previous two. The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. 
+<details open><summary class='drop'>12. Invasive cover by cycle <b style="color:red">Updated 8-12-20</b></summary>
+<s>This metric is more straightforward than the previous two.</s> The final dataset will have a row for each plot and a column with average invasive cover for each cycle. But first, because we're looking at trends here, we need to make sure we're only including species that have been on the indicator list since 2007. That way, any trends we see are due to changes in plant abundance, not changes in the indicator list. 
 
 Fortunately, we mostly figured this out for our regional invasive trend analysis, so I'll load that list, named Invasive_List.csv, and use it to only include invasive species in the analysis. I copied that list to the google drive, so please download it and put it in your data folder. In this dataset, species with a 1 in the MIDN column should be included in our analysis. Species with 0 will not be included in this metric, but will be included in metrics that only consider the last 4 years. 
 
@@ -2013,26 +2015,46 @@ MIDN_inv_list <- inv_list %>% filter(MIDN_INV == 1 & Year_added ==2007) %>% sele
 #Now making an invasive only list to filter against
 ```
 
-Now time to pull in quadrat data for RICH. First we pull in the quadrat data for exotic species and filter out species that aren't on the MIDN_inv_list. Then we sum up the cover of each invasives at the plot level. We'll have to merge this dataset in with a table that includes all plots and visits for RICH, since plots without invasives will get dropped when we filter out species not on the invasive list. After merging, we'll pivot the data so we have a column for every park and a field for every cycle with invasive cover as the values.
+Now time to pull in quadrat data for RICH. First we pull in the quadrat data for exotic species and filter out species that aren't on the MIDN_inv_list. <font style="color:red">Update: We also need to pull in % cover of invasive tree species, which are stored with the quadrat seedling data, instead of the quadrat species data for all years except 2019. We'll need to remove 2019 % cover of tree seedlings in quadrats too, so we're not double counting (Sorry the MIDN protocol is so complicated...).</font> Next we sum up the cover of each invasive at the plot level. We'll have to merge this dataset in with a table that includes all plots and visits for RICH, since plots without invasives will get dropped when we filter out species not on the invasive list. After merging, we'll pivot the data so we have a column for every park and a field for every cycle with invasive cover as the values.
+
+<b style="color:red">Updated Code Chunk 8-12-20</b>
 ```{r m12_3, echo=T, results = 'hide'}
 RICH_exo_spp <- joinQuadData(park = "RICH", from = 2007, to = 2019, speciesType = 'exotic')
 length(unique(RICH_exo_spp$Plot_Name)) #making sure it's still 32
 
-RICH_inv_spp <- RICH_exo_spp %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name)
+# In addition to dropping exotic species that aren't invasive, we also need to remove 
+# tree species that were only picked up in 2019 because of a protocol change.
+# Fortunately the joinQuadData function returns a field called "new_2019" that we can filter on
+RICH_inv_spp <- RICH_exo_spp %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name) %>% 
+                                 filter(new_2019 == FALSE)
+
 length(unique(RICH_inv_spp$Plot_Name)) # Now it's 24, meaning that plots without species on the MIDN_inv_list
 # were removed. We'll add those back in with a left_join near the end.
-head(RICH_inv_spp)
 
-RICH_inv_spp2 <- RICH_inv_spp %>% group_by(Event_ID, Plot_Name, cycle) %>% 
-                                  summarize(avg.cover = sum(avg.cover, na.rm = TRUE))
+# Now to pull in invasive tree seedlings from the quadrat seedling table using joinRegenData
+RICH_exo_seed <- joinRegenData(park = "RICH", from = 2007, to = 2019, speciesType = 'exotic')
+RICH_inv_seed <- RICH_exo_seed %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name)
 
-head(RICH_inv_spp2)
+# We need to make the two datasets have the same column names and order so we can combine them
+RICH_inv_spp2 <- RICH_inv_spp %>% select(Event_ID, Unit_Code, Plot_Name, Plot_Number, 
+                                         Year, cycle, TSN, Latin_Name, avg.cover)
+
+RICH_inv_seed2 <- RICH_inv_seed %>% select(names(RICH_inv_spp2))
+
+# Now combine the datasets
+RICH_inv_comb <- rbind(RICH_inv_spp2, RICH_inv_seed2)
+
+RICH_inv_comb2 <- RICH_inv_comb %>% group_by(Event_ID, Plot_Name, cycle) %>% 
+                                    summarize(avg.cover = sum(avg.cover, na.rm = TRUE), 
+                                              .groups = "keep") # new thing dplyr wants
+
+length(unique(RICH_inv_comb2$Plot_Name)) #24 plots- need to add plots without invasives
 
 RICH_plot_ev <- joinLocEvent(park = "RICH", from = 2007, to = 2019) # left data set to merge to
-length(unique(RICH_plot_ev$Plot_Name))
+length(unique(RICH_plot_ev$Plot_Name)) #32
 
 RICH_inv_merge <- merge(RICH_plot_ev[ , c("Event_ID", "Plot_Name", "Plot_Number", "cycle", "X_Coord", "Y_Coord")],
-                        RICH_inv_spp2, by = c("Event_ID", "Plot_Name", "cycle"), all.x = TRUE, all.y = TRUE)
+                        RICH_inv_comb2, by = c("Event_ID", "Plot_Name", "cycle"), all.x = TRUE, all.y = TRUE)
 
 table(RICH_inv_merge$Plot_Name, RICH_inv_merge$cycle) # Every plot has a 1 for first 3 cycles, and only
 # panel 4 has first panel of plots, so that looks good.
@@ -2061,35 +2083,125 @@ writeOGR(RICH_inv_wide, dsn = './shapefiles', layer = 'RICH_inv_cycle',
 </details>
 </br>
 
-<details open><summary class='drop'>13. Invasive cover table</summary>
+<details open><summary class='drop'>13. Invasive cover table <b style="color:red">Updated 8-12-20</b></summary>
 The shapefile we generated in metric 12 has the same information that we'll provide in this metric, but as a table. To save time, I'll just take the data from the shapefile and save it as a csv. When you create spatial dataframes in R, the data (eg think if this as the attribute table in GIS) can be accessed via the data slot, which you use \@data to access. If you're starting from scratch, just run the code for metric 12 up until you create RICH_inv_wide. Before converting to shapefile, save the data frame as a csv.  
-```{r m13_1, results = 'hide', echo=TRUE}
 
+<font style="color:red">Note: The easiest way to pad the plot numbers with 0s in Excel is to use this formula: =right(<Plot_Name column>, 3). That should pull the right 3 digits from the Plot_Name column. To be safe, you'll want to copy and "Paste Special", and then paste as Values. Then right click on the Plot Number column, format as text. Finally save as .xlsx instead of .csv. </font>
+
+<b style="color:red">Be sure to rerun this code chunk, so Metric 13 correctly incorporates invasive tree % cover.</b>
+```{r m13_1, results = 'hide', echo=TRUE}
 RICH_inv_tbl <- RICH_inv_wide@data #The plot number is padded here. 
 write.csv(RICH_inv_tbl, "./tables/Invasive_cover_table_M13.csv", row.names = FALSE)
 ```
+
+<b style="color:red">For those of you separating this table by unit, I coded that below starting from the beginning of Metric 12.</b>
+```{r m13_1b, results = 'hide', echo=TRUE}
+FRSP_exo_spp <- joinQuadData(park = "FRSP", from = 2007, to = 2019, speciesType = 'exotic')
+length(unique(FRSP_exo_spp$Plot_Name)) #making sure it's still 104
+
+# In addition to dropping exotic species that aren't invasive, we also need to remove 
+# tree species that were only picked up in 2019 because of a protocol change.
+# Fortunately the joinQuadData function returns a field called "new_2019" that we can filter on
+FRSP_inv_spp <- FRSP_exo_spp %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name) %>% 
+                                 filter(new_2019 == FALSE)
+
+length(unique(FRSP_inv_spp$Plot_Name)) # Now it's 27, meaning that plots without species on the MIDN_inv_list
+# were removed. We'll add those back in with a left_join near the end.
+
+# Now to pull in invasive tree seedlings from the quadrat seedling table using joinRegenData
+FRSP_exo_seed <- joinRegenData(park = "FRSP", from = 2007, to = 2019, speciesType = 'exotic')
+FRSP_inv_seed <- FRSP_exo_seed %>% filter(Latin_Name %in% MIDN_inv_list$Latin_Name)
+
+# We need to make the two datasets have the same column names and order so we can combine them
+FRSP_inv_spp2 <- FRSP_inv_spp %>% select(Event_ID, Unit_Code, Plot_Name, Plot_Number, 
+                                         Year, cycle, TSN, Latin_Name, avg.cover)
+
+FRSP_inv_seed2 <- FRSP_inv_seed %>% select(names(FRSP_inv_spp2))
+
+# Now combine the datasets
+FRSP_inv_comb <- rbind(FRSP_inv_spp2, FRSP_inv_seed2)
+
+FRSP_inv_comb2 <- FRSP_inv_comb %>% group_by(Event_ID, Plot_Name, cycle) %>% 
+                                    summarize(avg.cover = sum(avg.cover, na.rm = TRUE), 
+                                              .groups = "keep") # new thing dplyr wants
+
+length(unique(FRSP_inv_comb2$Plot_Name)) #28 plots- need to add plots without invasives
+
+FRSP_loc_ev_subunit <- joinLocEvent(park = "FRSP", from = 2007, to = 2019, output = "verbose") %>% 
+                       mutate(subunit = substr(Unit_ID, 6, nchar(Unit_ID))) %>% 
+                       select(Event_ID, Plot_Name, Plot_Number, cycle, 
+                              X_Coord, Y_Coord, subunit)
+
+length(unique(FRSP_loc_ev_subunit$Plot_Name)) #104
+
+FRSP_inv_merge <- merge(FRSP_loc_ev_subunit,
+                        FRSP_inv_comb2, by = c("Event_ID", "Plot_Name", "cycle"), all.x = TRUE, all.y = TRUE)
+
+table(FRSP_inv_merge$Plot_Name, FRSP_inv_merge$cycle) # Every plot has a 1 for first 3 cycles, and only
+# panel 4 has first panel of plots, so that looks good.
+
+# Now to change NA to 0 for plots that don't have any invasives for a given visit
+table(complete.cases(FRSP_inv_merge$avg.cover)) # a bunch of NAs in the data
+FRSP_inv_merge$avg.cover[is.na(FRSP_inv_merge$avg.cover)] <- 0
+table(complete.cases(FRSP_inv_merge$avg.cover)) # no there aren't any NAs
+
+FRSP_inv_wide <- FRSP_inv_merge %>% select(Plot_Name, cycle, Plot_Number, subunit, avg.cover) %>% 
+                                    arrange(Plot_Name, cycle) %>% 
+                                    pivot_wider(names_from = cycle, values_from = avg.cover) %>% 
+                                    arrange(subunit, Plot_Name)
+# We won't values fill this, because there are plots in cycle 4 that haven't been sampled. We want those to be NA.
+#View(FRSP_inv_wide)
+length(unique(FRSP_inv_wide$Plot_Name)) #104
+
+write.csv(FRSP_inv_wide, "./tables/Invasive_cover_table_M13.csv", row.names = FALSE)
+```
+
+
 </details>
 </br>
 
-<details open><summary class='drop'>14. Invasive cover by species <b style="color:red">Updated 7-22-20</b></summary>
+<details open><summary class='drop'>14. Invasive cover by species <b style="color:red">Updated 8-12-20</b></summary>
 The approach for this metric is similar for metric 10 and 11. You'll need to determine the most common invasive species, which will have their own pie color. If you have >12 species, then you'll need to lump the less common species. The final dataset will have a row for every plot, and a column for each species. The values will be the average cover of that species. We're only using the last 4 years of data for this metric, so we can include all invasive species, instead of only the ones that have been on the indicator list since 2007.
 
-I'm going to use GETT, since there are a lot of invasive species in that park
+I'm going to use GETT, since there are a lot of invasive species in that park.
+<br>
+<b style="color:red">Updated Code Chunk 8-12-20</b>
 ```{r m14_1, results = 'hide', echo = TRUE}
-GETT_inv_pie <- joinQuadData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic')
+make_inv_sppcode <- function(df){
+  df2 <- df %>% mutate(genus = word(Latin_Name, 1),
+                       species = ifelse(is.na(word(Latin_Name, 2)), "spp",
+                                       word(Latin_Name,2)),
+                       sppcode = toupper(paste0(substr(genus, 1, 3),
+                                               substr(species, 1, 3))))
+  
+  df2$sppcode[df2$sppcode == 'NASPP'] <- "NOSPP"
+  df2$sppcode[df2$sppcode == 'NOSPE'] <- "NOSPP"
+  df2$sppcode[df2$sppcode == "LON-"]<-"LONSPP"
+  return(df2)
+}
 
-GETT_inv_pie <- make_sppcode(GETT_inv_pie) #adding sppcode- function found in Metric 10.
+GETT_inv_spp <- joinQuadData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic') %>% 
+                  filter(new_2019 == FALSE)
+
+GETT_inv_seed <- joinRegenData(park = "GETT", from = 2016, to = 2019, speciesType = 'exotic')
+
+GETT_inv_spp2 <- GETT_inv_spp %>% select(Event_ID, Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord,
+                                         Year, cycle, TSN, Latin_Name, avg.cover)
+
+GETT_inv_seed2 <- GETT_inv_seed %>% select(names(GETT_inv_spp2))
+
+GETT_inv_pie <- rbind(GETT_inv_spp2, GETT_inv_seed2)
+
+GETT_inv_pie <- make_inv_sppcode(GETT_inv_pie) 
 
 top_spp <- data.frame(table(GETT_inv_pie$sppcode)) %>% arrange(-Freq)
 
-# Just want to rename LON- to LONSPP so cleaner
-GETT_inv_pie$sppcode[GETT_inv_pie$sppcode == "LON-"]<-"LONSPP"
 sort(unique(GETT_inv_pie$sppcode))
 ```
-There are 19 species on the list in GETT, requiring us to lump like with Metrics 11 & 12. </br>
+There are 16 species on the list in GETT, requiring us to lump like with Metrics 11 & 12. <br>
 
-<b style="color:red">Updated code chunk 7-22-20</b>
-Note that the groups below include more species than occur in GETT to help with groupings for other parks. The exo_herb group, for example, should be used for all parks, and will be labeled as other exotic herbs in the map.
+Note that the groups below include more species than occur in GETT to help with groupings for other parks. The exo_herb group, for example, should be used for all parks, and will be labeled as other exotic herbs in the map.<br>
+<b style="color:red">Updated Code Chunk 8-12-20</b>
 ```{r m14_2, results = 'hide', echo=TRUE}
 exo_herb <- data.frame(sppcode = c("DUCIND", "GLEHED", "PERLON", "VINMIN")) #added 7/22
 inv_herb <- data.frame(sppcode = c("ALLPET", "CARIMP", "RANFIC")) #revised 7/22
@@ -2105,21 +2217,27 @@ GETT_inv_pie <- GETT_inv_pie %>% mutate(sppgrp = case_when(sppcode %in% exo_herb
 
 # Summarize so only 1 sppgrp per plot
 GETT_inv_pie2 <- GETT_inv_pie %>% group_by(Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp) %>% 
-                                  summarize(avg.cover = sum(avg.cover, na.rm=T)) %>% 
+                                  summarize(avg.cover = sum(avg.cover, na.rm=T),
+                                            .groups = 'keep') %>% arrange(sppgrp) %>% 
                                   ungroup() # added 7/15
-
+#View(GETT_inv_pie2)
 table(GETT_inv_pie2$sppgrp)
 ```
 
-Now we need to take the sppcode and spread it wide and make into a shapefile.
+Now we need to take the sppcode and spread it wide and make into a shapefile.<br>
+<b style="color:red">Updated code chunk 8-12-20</b>
 ```{r m14_3, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 
 GETT_inv_pwide <- GETT_inv_pie2 %>% select(Plot_Name, Plot_Number, X_Coord, Y_Coord, sppgrp, avg.cover) %>% 
                                     pivot_wider(names_from = sppgrp,
                                                values_from = avg.cover, 
-                                               values_fill = 0) #%>% 
-                                    #select(-NOSPE) # Every plot has an invasive in GETT, 
-                                    #so don't have NOSPE to remove recorded. 
+                                               values_fill = 0) 
+
+# Every plot has an invasive in GETT, but other parks may have NOSPP listed as a column. We'll want
+# to remove those columns before saving to shapefile.
+GETT_inv_pwide <- GETT_inv_pwide[ , -which(names(GETT_inv_pwide) %in% c("NOSPP"))]
+
+length(unique(GETT_inv_pwide$Plot_Name)) #33- the correct number. I checked and the code should also return plots without invasives. There just aren't any of those in GETT, unfortunately.
 
 coordinates(GETT_inv_pwide) <- ~X_Coord + Y_Coord
 proj4string(GETT_inv_pwide) <- CRS("+init=epsg:26918")
@@ -2127,13 +2245,14 @@ writeOGR(GETT_inv_pwide, dsn = './shapefiles', layer = 'GETT_inv_spp',
          driver = 'ESRI Shapefile', overwrite_layer = TRUE) 
 
 ```
+
 </details>
-</br>
+<br>
 
 <details open><summary class='drop'>15. Invasive species plot frequency <b style="color:red">Updated 7-22-20</b></summary>
 This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we'll join to the dataset to include a Year_added field.
 
-```{r m15_1, results = 'hide', echo = TRUE}
+```{r m15_1, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 # Load invasive list, if not already in global environment from previous metrics
 inv_list <- read.csv("../data/Invasive_List.csv")
 MIDN_inv_list <- inv_list %>% filter(MIDN_INV == 1) %>% select(Latin_Name, Year_added) 
@@ -2171,7 +2290,7 @@ RICH_invlist_wide <- RICH_inv_spplist3 %>% pivot_wider(names_from = cycle,
 ```
 Note that we filled NAs with 0 in the step above because we summarized at the species level for each cycle and 0 means we didn't find it in that cycle. We next want to add the total number of of plots sampled each cycle, so it's clear that cycle 4 is only partial. We'll do that by summarizing data from joinLocEvent() and then merging to RICH_invlist_wide. We'll also merge this dataframe with plants to incorporate the common name for each species.
 
-```{r m15_2, echo=T, results = 'hide'}
+```{r m15_2, echo=T, results = 'hide', warning=FALSE, message = FALSE, comment = FALSE}
 RICH_plot_events <- joinLocEvent(park = "RICH", from = 2007, to = 2019)
 RICH_plot_nums <- RICH_plot_events %>% group_by(cycle) %>% 
                                        summarize(numvisits = sum(!is.na(Plot_Name))) %>% 
@@ -2180,7 +2299,7 @@ RICH_plot_nums <- RICH_plot_events %>% group_by(cycle) %>%
 ```
 The easiest way to bind the plot number and invasive list together is to make the RICH_plot_nums have the same column names as RICH_invlist2, then to bind the rows (rbind) together.
 
-```{r m15_3, echo = TRUE, results = 'hide'}
+```{r m15_3, echo = TRUE, results = 'hide', warning=FALSE, message = FALSE, comment = FALSE}
 names(RICH_invlist_wide)
 RICH_plot_nums$Latin_Name <- as.character("Number of plots")
 RICH_plot_nums$Common <- as.character(NA)
@@ -2190,11 +2309,11 @@ RICH_plot_nums <- RICH_plot_nums[ , names(RICH_invlist_wide)] #using names from 
 
 RICH_invtbl <- rbind(RICH_invlist_wide, RICH_plot_nums)
 ```
-For the species that are exotic but not invasive, you'll want to put a * next to the latin name in the table, and add in the caption: "Species that are exotic to the mid-Atlantic region, but not considered invasive are indiated by *." The species that should get this star are Duchesnia indica, Glechoma hederacea, Persicaria longiseta, and Vinca minor. I'm going to do this in the code, but you can also do this by hand.
+For the species that are exotic but not invasive, you'll want to put a * next to the latin name in the table, and add in the caption: "Species that are exotic to the mid-Atlantic region, but not considered invasive are indicated by *." The species that should get this star are Duchesnia indica, Glechoma hederacea, Persicaria longiseta, and Vinca minor. I'm going to do this in the code, but you can also do this by hand.
 </br>
 
 <b style="color:red">Updated code chunk 7-22-20</b>
-```{r m_15_4, echo=TRUE, results = 'hide'}
+```{r m_15_4, echo=TRUE, results = 'hide', warning=FALSE, message = FALSE, comment = FALSE}
 exospp_list <- c("Duchesnia indica", "Glechoma hederacea", "Persicaria longiseta", "Vinca minor")
 
 RICH_invtbl <- RICH_invtbl %>% mutate(Latin_Name = ifelse(Latin_Name %in% exospp_list, paste0(Latin_Name, "*"),
