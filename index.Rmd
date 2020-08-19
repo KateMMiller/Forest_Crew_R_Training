@@ -2203,7 +2203,7 @@ There are 16 species on the list in GETT, requiring us to lump like with Metrics
 Note that the groups below include more species than occur in GETT to help with groupings for other parks. The exo_herb group, for example, should be used for all parks, and will be labeled as other exotic herbs in the map.<br>
 <b style="color:red">Updated Code Chunk 8-12-20</b>
 ```{r m14_2, results = 'hide', echo=TRUE}
-exo_herb <- data.frame(sppcode = c("DUCIND", "GLEHED", "PERLON", "VINMIN")) #added 7/22
+exo_herb <- data.frame(sppcode = c("DUCIND", "CIRARV", "GLEHED", "PERLON", "VINMIN")) #added 7/22
 inv_herb <- data.frame(sppcode = c("ALLPET", "CARIMP", "RANFIC")) #revised 7/22
 inv_woody <- data.frame(sppcode = c("DIOOPP", "CELORB", "EUOALA", "ELAANG", "ELASPP", "ELAUMB", "LESCUN", "LONSPP", "VIBSIE"))
 
@@ -2249,19 +2249,18 @@ writeOGR(GETT_inv_pwide, dsn = './shapefiles', layer = 'GETT_inv_spp',
 </details>
 <br>
 
-<details open><summary class='drop'>15. Invasive species plot frequency <b style="color:red">Updated 7-22-20</b></summary>
+<details open><summary class='drop'>15. Invasive species plot frequency <b style="color:red">Updated 8-19-20</b></summary>
 This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we'll join to the dataset to include a Year_added field.
 
 ```{r m15_1, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 # Load invasive list, if not already in global environment from previous metrics
-inv_list <- read.csv("../data/Invasive_List.csv")
-MIDN_inv_list <- inv_list %>% filter(MIDN_INV == 1) %>% select(Latin_Name, Year_added) 
+inv_list <- read.csv("../data/Invasive_List.csv") %>% select(Latin_Name, Year_added)
 
 # Create species list of exotics found in RICH in all years
 RICH_exo_spplist <- makeSppList(park = "RICH", from = 2007, to = 2019, speciesType = "exotic")
 
 # Merge species list of occurrences with MIDN invasive list
-RICH_inv_spplist2 <- merge(MIDN_inv_list, 
+RICH_inv_spplist2 <- merge(inv_list, 
                            RICH_exo_spplist[ , c("Plot_Number", "Latin_Name", "Common", "present", "cycle")], 
                            by = "Latin_Name", 
                            all.x = FALSE, all.y = TRUE)
@@ -2312,9 +2311,10 @@ RICH_invtbl <- rbind(RICH_invlist_wide, RICH_plot_nums)
 For the species that are exotic but not invasive, you'll want to put a * next to the latin name in the table, and add in the caption: "Species that are exotic to the mid-Atlantic region, but not considered invasive are indicated by *." The species that should get this star are Duchesnia indica, Glechoma hederacea, Persicaria longiseta, and Vinca minor. I'm going to do this in the code, but you can also do this by hand.
 </br>
 
-<b style="color:red">Updated code chunk 7-22-20</b>
+<b style="color:red">Updated code chunk 8-19-20</b>
 ```{r m_15_4, echo=TRUE, results = 'hide', warning=FALSE, message = FALSE, comment = FALSE}
-exospp_list <- c("Duchesnia indica", "Glechoma hederacea", "Persicaria longiseta", "Vinca minor")
+exospp_list <- c("Duchesnia indica", "Cirsium arvense", "Glechoma hederacea", 
+                 "Persicaria longiseta", "Prunus avium", "Vinca minor")
 
 RICH_invtbl <- RICH_invtbl %>% mutate(Latin_Name = ifelse(Latin_Name %in% exospp_list, paste0(Latin_Name, "*"),
                                                           paste0(Latin_Name)))
