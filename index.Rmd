@@ -2255,6 +2255,13 @@ This table is going to use the makeSppList() function to determine the number of
 ```{r m15_1, results = 'hide', echo = TRUE, warning=FALSE, message = FALSE, comment = FALSE}
 # Load invasive list, if not already in global environment from previous metrics
 inv_list <- read.csv("../data/Invasive_List.csv") %>% select(Latin_Name, Year_added)
+names(inv_list)
+
+if(length(inv_list[(inv_list$Latin_Name == "Duchesnia indica"),]) == 0){
+  inv_list %>% add_row(., Latin_Name = "Duchesnia indica", Year_added = 2007)}
+
+if(length(inv_list[(inv_list$Latin_Name == "Cirsium arvense"),]) == 0){
+  inv_list %>% add_row(., Latin_Name = "Cirsium arvense", Year_added = 2007)}
 
 # Create species list of exotics found in RICH in all years
 RICH_exo_spplist <- makeSppList(park = "RICH", from = 2007, to = 2019, speciesType = "exotic")

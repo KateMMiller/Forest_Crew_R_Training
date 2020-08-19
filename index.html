@@ -2864,6 +2864,13 @@ writeOGR(GETT_inv_pwide, dsn = &#39;./shapefiles&#39;, layer = &#39;GETT_inv_spp
 <p><summary class="drop">15. Invasive species plot frequency <b style="color:red">Updated 8-19-20</b></summary> This table is going to use the makeSppList() function to determine the number of plots per cycle a species has been found in. The complicating factor here is that some species have been added to the indicator list over time, and we need to indicate that in the table by adding a new column for year added. The Invasive_list.csv has that information, which we’ll join to the dataset to include a Year_added field.</p>
 <pre class="r"><code># Load invasive list, if not already in global environment from previous metrics
 inv_list &lt;- read.csv(&quot;../data/Invasive_List.csv&quot;) %&gt;% select(Latin_Name, Year_added)
+names(inv_list)
+
+if(length(inv_list[(inv_list$Latin_Name == &quot;Duchesnia indica&quot;),]) == 0){
+  inv_list %&gt;% add_row(., Latin_Name = &quot;Duchesnia indica&quot;, Year_added = 2007)}
+
+if(length(inv_list[(inv_list$Latin_Name == &quot;Cirsium arvense&quot;),]) == 0){
+  inv_list %&gt;% add_row(., Latin_Name = &quot;Cirsium arvense&quot;, Year_added = 2007)}
 
 # Create species list of exotics found in RICH in all years
 RICH_exo_spplist &lt;- makeSppList(park = &quot;RICH&quot;, from = 2007, to = 2019, speciesType = &quot;exotic&quot;)
@@ -4118,6 +4125,13 @@ writeOGR(GETT_inv_pwide, dsn = &#39;./shapefiles&#39;, layer = &#39;GETT_inv_spp
 
 # Load invasive list, if not already in global environment from previous metrics
 inv_list &lt;- read.csv(&quot;../data/Invasive_List.csv&quot;) %&gt;% select(Latin_Name, Year_added)
+names(inv_list)
+
+if(length(inv_list[(inv_list$Latin_Name == &quot;Duchesnia indica&quot;),]) == 0){
+  inv_list %&gt;% add_row(., Latin_Name = &quot;Duchesnia indica&quot;, Year_added = 2007)}
+
+if(length(inv_list[(inv_list$Latin_Name == &quot;Cirsium arvense&quot;),]) == 0){
+  inv_list %&gt;% add_row(., Latin_Name = &quot;Cirsium arvense&quot;, Year_added = 2007)}
 
 # Create species list of exotics found in RICH in all years
 RICH_exo_spplist &lt;- makeSppList(park = &quot;RICH&quot;, from = 2007, to = 2019, speciesType = &quot;exotic&quot;)
